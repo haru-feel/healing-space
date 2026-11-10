@@ -18,7 +18,7 @@
             font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
             user-select: none;
             color: #fff;
-            touch-action: none; /* 모바일 브라우저 기본 스크롤 동작 방지 */
+            touch-action: none;
         }
         #canvas-container {
             width: 100vw;
@@ -140,7 +140,7 @@
             z-index: 10;
         }
 
-        /* 하루명언 위로 이동한 테마 선택 바 (좌우 스크롤 가능) */
+        /* 하루명언 위로 이동한 테마 선택 바 (가로 스크롤 가능) */
         .time-container {
             width: 100%;
             padding: 8px 12px;
@@ -148,7 +148,7 @@
             white-space: nowrap;
             -webkit-overflow-scrolling: touch;
             scrollbar-width: none;
-            touch-action: pan-x; /* 테마 바는 가로 스크롤 허용 */
+            touch-action: pan-x;
         }
         .time-container::-webkit-scrollbar {
             display: none;
@@ -530,16 +530,16 @@
 
         setTimeOfDay('night');
 
-        // --- 4. 유튜브 원본 ASMR 링크 연동 플레이어 ---
+        // --- 4. 검증된 유튜브 최신 ASMR 링크 연동 플레이어 ---
         let players = {};
         let isGlobalMuted = false;
 
         function onYouTubeIframeAPIReady() {
-            players['fire'] = new YT.Player('yt-fire', { height: '0', width: '0', videoId: 'N_g3AiXF-q8', playerVars: { 'autoplay': 0, 'loop': 1, 'playlist': 'N_g3AiXF-q8' } });
-            players['wave'] = new YT.Player('yt-wave', { height: '0', width: '0', videoId: 'n4Mdh3TEq_k', playerVars: { 'autoplay': 0, 'loop': 1, 'playlist': 'n4Mdh3TEq_k' } });
-            players['rain'] = new YT.Player('yt-rain', { height: '0', width: '0', videoId: 'lQ0fS2meTYQ', playerVars: { 'autoplay': 0, 'loop': 1, 'playlist': 'lQ0fS2meTYQ' } });
-            players['wind'] = new YT.Player('yt-wind', { height: '0', width: '0', videoId: 'KKi2qiuZZWQ', playerVars: { 'autoplay': 0, 'loop': 1, 'playlist': 'KKi2qiuZZWQ' } });
-            players['cricket'] = new YT.Player('yt-cricket', { height: '0', width: '0', videoId: 'WPlZUsbWqBc', playerVars: { 'autoplay': 0, 'loop': 1, 'playlist': 'WPlZUsbWqBc' } });
+            players['fire'] = new YT.Player('yt-fire', { height: '0', width: '0', videoId: '2OEL4P5Kr54', playerVars: { 'autoplay': 0, 'loop': 1, 'playlist': '2OEL4P5Kr54' } });
+            players['wave'] = new YT.Player('yt-wave', { height: '0', width: '0', videoId: 'WHPEKLQID4U', playerVars: { 'autoplay': 0, 'loop': 1, 'playlist': 'WHPEKLQID4U' } });
+            players['rain'] = new YT.Player('yt-rain', { height: '0', width: '0', videoId: 'Jp6g0986z6w', playerVars: { 'autoplay': 0, 'loop': 1, 'playlist': 'Jp6g0986z6w' } });
+            players['wind'] = new YT.Player('yt-wind', { height: '0', width: '0', videoId: 'xNN7iTA57jM', playerVars: { 'autoplay': 0, 'loop': 1, 'playlist': 'xNN7iTA57jM' } });
+            players['cricket'] = new YT.Player('yt-cricket', { height: '0', width: '0', videoId: 'mPZkdNFkNps', playerVars: { 'autoplay': 0, 'loop': 1, 'playlist': 'mPZkdNFkNps' } });
         }
 
         function handleVolumeChange(soundKey, volumeValue) {
