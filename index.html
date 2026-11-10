@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D 감성 힐링 공간</title>
+    <title>3D 입체 힐링 숲 스페이스</title>
     <style>
         * {
             box-sizing: border-box;
@@ -23,14 +23,14 @@
             display: block;
         }
         .glass-panel {
-            background: rgba(18, 20, 32, 0.55);
+            background: rgba(18, 20, 32, 0.6);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
             border: 1px solid rgba(255, 255, 255, 0.12);
             border-radius: 20px;
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
         }
-        /* 시간대 선택 패널 */
+        /* 좌측 상단: 시간대 테마 패널 */
         .time-container {
             position: absolute;
             top: 20px;
@@ -39,10 +39,10 @@
             z-index: 10;
         }
         .panel-title {
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 600;
-            letter-spacing: 0.5px;
-            color: rgba(255, 255, 255, 0.7);
+            letter-spacing: 0.8px;
+            color: rgba(255, 255, 255, 0.6);
             margin-bottom: 10px;
         }
         .time-buttons {
@@ -54,8 +54,8 @@
             background: rgba(255, 255, 255, 0.08);
             border: 1px solid rgba(255, 255, 255, 0.15);
             color: rgba(255, 255, 255, 0.85);
-            padding: 7px 12px;
-            border-radius: 12px;
+            padding: 6px 11px;
+            border-radius: 10px;
             cursor: pointer;
             font-size: 12px;
             font-weight: 500;
@@ -72,20 +72,20 @@
             box-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
         }
 
-        /* 사운드 믹서 패널 */
+        /* 우측 상단: 5대 입체 ASMR 믹서 패널 */
         .sound-container {
             position: absolute;
             top: 20px;
             right: 20px;
-            padding: 18px;
-            width: 230px;
+            padding: 16px;
+            width: 240px;
             z-index: 10;
         }
         .sound-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 14px;
+            margin-bottom: 12px;
         }
         .audio-toggle-btn {
             background: rgba(255, 255, 255, 0.1);
@@ -97,18 +97,18 @@
             font-size: 14px;
         }
         .sound-control {
-            margin-bottom: 10px;
+            margin-bottom: 9px;
         }
         .sound-control label {
-            font-size: 12px;
+            font-size: 11px;
             display: flex;
             justify-content: space-between;
-            margin-bottom: 5px;
+            margin-bottom: 4px;
             color: rgba(255, 255, 255, 0.85);
         }
         .sound-control input[type=range] {
             width: 100%;
-            height: 4px;
+            height: 3px;
             border-radius: 2px;
             background: rgba(255, 255, 255, 0.2);
             appearance: none;
@@ -116,37 +116,56 @@
         }
         .sound-control input[type=range]::-webkit-slider-thumb {
             appearance: none;
-            width: 12px;
-            height: 12px;
+            width: 11px;
+            height: 11px;
             border-radius: 50%;
             background: #fff;
             cursor: pointer;
         }
 
-        /* 하단 명언 패널 */
+        /* 하단: 힐링 명언 & 조언 패널 */
         .quote-container {
             position: absolute;
             bottom: 30px;
             left: 50%;
             transform: translateX(-50%);
-            padding: 16px 28px;
-            max-width: 580px;
+            padding: 18px 28px;
+            max-width: 620px;
             width: 90%;
             text-align: center;
             z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+        .quote-category {
+            font-size: 10px;
+            letter-spacing: 1px;
+            color: #ffd700;
+            text-transform: uppercase;
+            font-weight: 600;
         }
         .quote-text {
             font-size: 14px;
             font-weight: 300;
-            line-height: 1.6;
+            line-height: 1.65;
             color: rgba(255, 255, 255, 0.95);
         }
-        .spatial-tag {
-            font-size: 10px;
-            color: #88ffaa;
+        .refresh-btn {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: rgba(255, 255, 255, 0.8);
+            padding: 5px 14px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 11px;
+            transition: all 0.2s;
             margin-top: 4px;
-            display: block;
-            opacity: 0.8;
+        }
+        .refresh-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: #fff;
         }
     </style>
 </head>
@@ -154,9 +173,9 @@
 
     <div id="canvas-container"></div>
 
-    <!-- 좌측 상단: 시간대 변경 -->
+    <!-- 좌측 상단: 시간대 테마 -->
     <div class="glass-panel time-container">
-        <div class="panel-title">TIME OF DAY</div>
+        <div class="panel-title">ATMOSPHERE TIME</div>
         <div class="time-buttons">
             <button class="time-btn" onclick="setTimeOfDay('dawn')">🌌 새벽</button>
             <button class="time-btn" onclick="setTimeOfDay('morning')">🌅 아침</button>
@@ -166,48 +185,67 @@
         </div>
     </div>
 
-    <!-- 우측 상단: 입체 사운드 믹서 -->
+    <!-- 우측 상단: 5가지 3D 입체 ASMR 믹서 -->
     <div class="glass-panel sound-container">
         <div class="sound-header">
-            <span class="panel-title" style="margin:0;">3D AUDIO MIXER</span>
+            <span class="panel-title" style="margin:0;">3D SPATIAL ASMR</span>
             <button class="audio-toggle-btn" id="audio-toggle">🔊</button>
         </div>
         <div class="sound-control">
-            <label>🔥 3D 모닥불 (중앙 고정)</label>
+            <label>🔥 모닥불 소리 <span id="val-fire">0.5</span></label>
             <input type="range" id="vol-fire" min="0" max="1" step="0.01" value="0.5">
         </div>
         <div class="sound-control">
-            <label>🐦 숲속 새소리</label>
-            <input type="range" id="vol-bird" min="0" max="1" step="0.01" value="0.3">
+            <label>🌊 파도 소리 <span id="val-wave">0.0</span></label>
+            <input type="range" id="vol-wave" min="0" max="1" step="0.01" value="0.0">
         </div>
         <div class="sound-control">
-            <label>🌊 파도 소리</label>
-            <input type="range" id="vol-wave" min="0" max="1" step="0.01" value="0.15">
+            <label>🌧️ 비내리는 소리 <span id="val-rain">0.0</span></label>
+            <input type="range" id="vol-rain" min="0" max="1" step="0.01" value="0.0">
         </div>
         <div class="sound-control">
-            <label>🌧️ 빗소리</label>
-            <input type="range" id="vol-rain" min="0" max="1" step="0.01" value="0.1">
-        </div>
-        <div class="sound-control">
-            <label>💨 바람소리</label>
+            <label>💨 바람 소리 <span id="val-wind">0.2</span></label>
             <input type="range" id="vol-wind" min="0" max="1" step="0.01" value="0.2">
         </div>
+        <div class="sound-control">
+            <label>🦗 풀벌레 소리 <span id="val-cricket">0.3</span></label>
+            <input type="range" id="vol-cricket" min="0" max="1" step="0.01" value="0.3">
+        </div>
     </div>
 
-    <!-- 하단 힐링 문구 -->
+    <!-- 하단: 힐링 명언 & 조언 위젯 -->
     <div class="glass-panel quote-container">
-        <div class="quote-text" id="quote-display">"화면을 회전하면 모닥불 소리가 방향에 맞춰 입체적으로 이동합니다."</div>
-        <span class="spatial-tag">🎧 이어폰이나 헤드폰 착용 시 3D 입체 음향 효과가 극대화됩니다</span>
+        <div class="quote-category" id="q-category">✨ 오늘의 위로</div>
+        <div class="quote-text" id="q-text">"마음의 속도를 줄이고, 지금 이 순간 스쳐 지나가는 바람과 불꽃의 온기에 집중해보세요."</div>
+        <button class="refresh-btn" onclick="getRandomQuote()">🔄 다른 문장 보기</button>
     </div>
 
-    <!-- Three.js 엔진 -->
+    <!-- Three.js 라이브러리 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
     <script>
-        // --- 1. 3D 씬 및 카메라 구성 ---
+        // --- 1. 힐링 명언 및 조언 데이터베이스 ---
+        const quotesData = [
+            { category: "🌱 마음 조언", text: "모든 일에는 저마다의 계절이 있습니다. 지금 당신에게는 잠시 쉬어가는 겨울이나 꽃을 피울 준비를 하는 봄이 찾아온 것뿐이에요." },
+            { category: "💡 깊은 생각", text: "과거의 후회와 미래의 불안이라는 무거운 짐을 내려놓으세요. 당신에게 진정으로 중요한 시간은 오직 숨쉬고 있는 이 현재뿐입니다." },
+            { category: "✨ 오늘의 위로", text: "오늘 하루도 수많은 감정을 견뎌내느라 정말 고생 많았습니다. 거창한 성취가 없어도, 살아 숨 쉰다는 것만으로도 충분히 아름다운 하루예요." },
+            { category: "🌊 삶의 지혜", text: "파도가 밀려왔다 밀려나가듯, 우리 삶의 슬픔과 걱정 역시 머물지 않고 흘러갑니다. 곧 평온한 바다가 찾아올 거예요." },
+            { category: "🔥 내면의 온기", text: "가장 어두운 밤일수록 작은 모닥불 하나의 온기가 더욱 따뜻하게 느껴지는법입니다. 당신 안의 작은 열정을 믿어보세요." },
+            { category: "🍃 휴식의 가치", text: "열심히 달려왔다면 때로는 멈춰 서서 나뭇잎사귀가 흔들리는 소리를 듣는 것, 그것이 가장 현명한 전진일 수 있습니다." },
+            { category: "⭐ 희망의 메시지", text: "별은 어둠이 깊을수록 더욱 빛납니다. 지금 겪고 있는 시련은 당신이 더 찬란하게 빛나기 위한 준비 과정일지도 몰라요." }
+        ];
+
+        function getRandomQuote() {
+            const randomIndex = Math.floor(Math.random() * quotesData.length);
+            const item = quotesData[randomIndex];
+            document.getElementById('q-category').innerText = item.category;
+            document.getElementById('q-text').innerText = `"${item.text}"`;
+        }
+
+        // --- 2. 3D 씬 및 환경 구성 ---
         const container = document.getElementById('canvas-container');
         const scene = new THREE.Scene();
-        
+
         const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 1000);
         camera.position.set(0, 2.5, 9);
 
@@ -216,7 +254,6 @@
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         container.appendChild(renderer.domElement);
 
-        // 기본 조명
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
         scene.add(ambientLight);
 
@@ -224,13 +261,13 @@
         mainSunLight.position.set(10, 20, 10);
         scene.add(mainSunLight);
 
-        // 모닥불 빛
+        // 모닥불 포인트 조명
         const fireLight = new THREE.PointLight(0xffaa33, 2.5, 12);
         fireLight.position.set(0, 0.8, 0);
         scene.add(fireLight);
 
         // 바닥
-        const floorGeo = new THREE.PlaneGeometry(80, 80);
+        const floorGeo = new THREE.PlaneGeometry(90, 90);
         const floorMat = new THREE.MeshStandardMaterial({ color: 0x0a140a, roughness: 0.9 });
         const floor = new THREE.Mesh(floorGeo, floorMat);
         floor.rotation.x = -Math.PI / 2;
@@ -269,9 +306,9 @@
         const leavesMat = new THREE.MeshStandardMaterial({ color: 0x0f401b, roughness: 0.8 });
         const trunkMat = new THREE.MeshStandardMaterial({ color: 0x1a1108 });
 
-        for (let i = 0; i < 40; i++) {
+        for (let i = 0; i < 45; i++) {
             const angle = Math.random() * Math.PI * 2;
-            const radius = 4.5 + Math.random() * 22;
+            const radius = 4.5 + Math.random() * 25;
             const x = Math.sin(angle) * radius;
             const z = Math.cos(angle) * radius;
 
@@ -286,67 +323,27 @@
             trees.push({ leaves });
         }
 
-        // 대기 파티클
-        const particleCount = 200;
+        // 주변 환경 파티클 (반딧불이/눈/나비)
+        const particleCount = 220;
         const envGeo = new THREE.BufferGeometry();
         const envPos = new Float32Array(particleCount * 3);
         for (let i = 0; i < particleCount * 3; i += 3) {
-            envPos[i] = (Math.random() - 0.5) * 40;
+            envPos[i] = (Math.random() - 0.5) * 45;
             envPos[i+1] = Math.random() * 10;
-            envPos[i+2] = (Math.random() - 0.5) * 40;
+            envPos[i+2] = (Math.random() - 0.5) * 45;
         }
         envGeo.setAttribute('position', new THREE.BufferAttribute(envPos, 3));
-        const envMat = new THREE.PointsMaterial({ color: 0xaaff88, size: 0.15, transparent: true, opacity: 0.7 });
+        const envMat = new THREE.PointsMaterial({ color: 0xaaff88, size: 0.16, transparent: true, opacity: 0.7 });
         const envParticles = new THREE.Points(envGeo, envMat);
         scene.add(envParticles);
 
-        // --- 2. 시간대 설정 (새벽 - 아침 - 점심 - 저녁 - 밤) ---
+        // --- 3. 시간대별 테마 설정 ---
         const timeConfigs = {
-            dawn: {
-                fog: 0x1b1c30,
-                bg: 0x1b1c30,
-                ambient: 0x333b55,
-                sunColor: 0xffaa88,
-                sunIntensity: 0.6,
-                leavesColor: 0x1f3a38,
-                particleColor: 0xddaaff
-            },
-            morning: {
-                fog: 0x87ceeb,
-                bg: 0x87ceeb,
-                ambient: 0x667788,
-                sunColor: 0xffffff,
-                sunIntensity: 1.2,
-                leavesColor: 0x2e6f40,
-                particleColor: 0xffffff
-            },
-            noon: {
-                fog: 0xa0e0ff,
-                bg: 0xa0e0ff,
-                ambient: 0x8899aa,
-                sunColor: 0xffffff,
-                sunIntensity: 1.6,
-                leavesColor: 0x1e8238,
-                particleColor: 0xffffff
-            },
-            sunset: {
-                fog: 0x3b1510,
-                bg: 0x3b1510,
-                ambient: 0x663322,
-                sunColor: 0xff6633,
-                sunIntensity: 1.4,
-                leavesColor: 0x4a2511,
-                particleColor: 0xffaa44
-            },
-            night: {
-                fog: 0x050510,
-                bg: 0x050510,
-                ambient: 0x111122,
-                sunColor: 0x4466aa,
-                sunIntensity: 0.4,
-                leavesColor: 0x0b2414,
-                particleColor: 0xaaff88
-            }
+            dawn: { fog: 0x1b1c30, bg: 0x1b1c30, ambient: 0x333b55, sunColor: 0xffaa88, sunIntensity: 0.6, leavesColor: 0x1f3a38, particleColor: 0xddaaff },
+            morning: { fog: 0x87ceeb, bg: 0x87ceeb, ambient: 0x667788, sunColor: 0xffffff, sunIntensity: 1.2, leavesColor: 0x2e6f40, particleColor: 0xffffff },
+            noon: { fog: 0xa0e0ff, bg: 0xa0e0ff, ambient: 0x8899aa, sunColor: 0xffffff, sunIntensity: 1.6, leavesColor: 0x1e8238, particleColor: 0xffffff },
+            sunset: { fog: 0x3b1510, bg: 0x3b1510, ambient: 0x663322, sunColor: 0xff6633, sunIntensity: 1.4, leavesColor: 0x4a2511, particleColor: 0xffaa44 },
+            night: { fog: 0x050510, bg: 0x050510, ambient: 0x111122, sunColor: 0x4466aa, sunIntensity: 0.4, leavesColor: 0x0b2414, particleColor: 0xaaff88 }
         };
 
         function setTimeOfDay(timeKey) {
@@ -365,11 +362,11 @@
 
         setTimeOfDay('night');
 
-        // --- 3. 입체 오디오 엔진 (3D Spatial Audio) ---
+        // --- 4. 5가지 3D 입체 ASMR 오디오 엔진 ---
         let audioCtx = null;
         let masterGain = null;
-        let firePanner = null;
-        let fireGain, birdGain, waveGain, rainGain, windGain;
+        let firePanner, wavePanner, cricketPanner;
+        let fireGain, waveGain, rainGain, windGain, cricketGain;
         let isAudioInitialized = false;
 
         function initAudio() {
@@ -381,8 +378,7 @@
             masterGain.gain.value = 0.6;
             masterGain.connect(audioCtx.destination);
 
-            // 노이즈 필터 생성 함수
-            function createNoiseFilter(type, freq) {
+            function createNoiseBufferSource(type, freq) {
                 const bufferSize = audioCtx.sampleRate * 2;
                 const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
                 const data = buffer.getChannelData(0);
@@ -401,77 +397,111 @@
                 return filter;
             }
 
-            // 1. 3D 공간 입체 모닥불 사운드 (PannerNode 적용)
+            // 1. 모닥불 (중앙 위치 0, 0, 0)
             firePanner = audioCtx.createPanner();
             firePanner.panningModel = 'HRTF';
-            firePanner.distanceModel = 'inverse';
-            firePanner.refDistance = 1;
-            firePanner.maxDistance = 10000;
-            firePanner.rolloffFactor = 1;
-            firePanner.setPosition(0, 0, 0); // 3D 공간 상의 모닥불 위치
-
+            firePanner.setPosition(0, 0, 0);
+            
             fireGain = audioCtx.createGain();
             fireGain.gain.value = parseFloat(document.getElementById('vol-fire').value);
-            
-            const fireNoise = createNoiseFilter('bandpass', 750);
-            fireNoise.connect(fireGain);
+            createNoiseBufferSource('bandpass', 450).connect(fireGain);
+
+            // 타닥타닥 불꽃 터지는 효과음 제너레이터
+            function scheduleCrackles() {
+                if (!audioCtx) return;
+                if (fireGain.gain.value > 0.01) {
+                    const osc = audioCtx.createOscillator();
+                    const g = audioCtx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(1000 + Math.random() * 2500, audioCtx.currentTime);
+                    g.gain.setValueAtTime(0.08, audioCtx.currentTime);
+                    g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.03 + Math.random() * 0.04);
+                    osc.connect(g);
+                    g.connect(fireGain);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.06);
+                }
+                setTimeout(scheduleCrackles, 120 + Math.random() * 350);
+            }
+            scheduleCrackles();
+
             fireGain.connect(firePanner);
             firePanner.connect(masterGain);
 
-            // 2. 새소리
-            birdGain = audioCtx.createGain();
-            birdGain.gain.value = parseFloat(document.getElementById('vol-bird').value);
-            setInterval(() => {
-                if (!audioCtx || birdGain.gain.value < 0.01) return;
-                const osc = audioCtx.createOscillator();
-                const g = audioCtx.createGain();
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(2200 + Math.random() * 800, audioCtx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(3200 + Math.random() * 400, audioCtx.currentTime + 0.12);
-                g.gain.setValueAtTime(0.04, audioCtx.currentTime);
-                g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
-                osc.connect(g);
-                g.connect(birdGain);
-                osc.start();
-                osc.stop(audioCtx.currentTime + 0.15);
-            }, 3500);
-            birdGain.connect(masterGain);
+            // 2. 파도 소리 (좌측 전방 -15, 0, -15 위치에서 밀려오는 입체음)
+            wavePanner = audioCtx.createPanner();
+            wavePanner.panningModel = 'HRTF';
+            wavePanner.setPosition(-15, 0, -15);
 
-            // 3. 파도 소리
             waveGain = audioCtx.createGain();
             waveGain.gain.value = parseFloat(document.getElementById('vol-wave').value);
-            createNoiseFilter('lowpass', 350).connect(waveGain);
-            waveGain.connect(masterGain);
+            createNoiseBufferSource('lowpass', 280).connect(waveGain);
+            waveGain.connect(wavePanner);
+            wavePanner.connect(masterGain);
 
-            // 4. 빗소리
+            // 3. 비내리는 소리 (공간 전체 포괄)
             rainGain = audioCtx.createGain();
             rainGain.gain.value = parseFloat(document.getElementById('vol-rain').value);
-            createNoiseFilter('lowpass', 1100).connect(rainGain);
+            createNoiseBufferSource('lowpass', 1200).connect(rainGain);
             rainGain.connect(masterGain);
 
-            // 5. 바람소리
+            // 4. 바람 소리 (부드러운 저주파 백색소음)
             windGain = audioCtx.createGain();
             windGain.gain.value = parseFloat(document.getElementById('vol-wind').value);
-            createNoiseFilter('bandpass', 220).connect(windGain);
+            createNoiseBufferSource('bandpass', 200).connect(windGain);
             windGain.connect(masterGain);
+
+            // 5. 풀벌레 소리 (우측 숲 15, 0, -15 위치)
+            cricketPanner = audioCtx.createPanner();
+            cricketPanner.panningModel = 'HRTF';
+            cricketPanner.setPosition(15, 0, -15);
+
+            cricketGain = audioCtx.createGain();
+            cricketGain.gain.value = parseFloat(document.getElementById('vol-cricket').value);
+            
+            // 풀벌레 찌르르 사운드 합성
+            setInterval(() => {
+                if (!audioCtx || cricketGain.gain.value < 0.01) return;
+                const cOsc = audioCtx.createOscillator();
+                const cGain = audioCtx.createGain();
+                cOsc.type = 'sawtooth';
+                cOsc.frequency.setValueAtTime(4200 + Math.random() * 400, audioCtx.currentTime);
+                cGain.gain.setValueAtTime(0.015, audioCtx.currentTime);
+                cGain.gain.linearRampToValueAtTime(0.0001, audioCtx.currentTime + 0.2);
+                cOsc.connect(cGain);
+                cGain.connect(cricketGain);
+                cOsc.start();
+                cOsc.stop(audioCtx.currentTime + 0.22);
+            }, 400);
+
+            cricketGain.connect(cricketPanner);
+            cricketPanner.connect(masterGain);
 
             isAudioInitialized = true;
         }
 
-        // 컨트롤러 슬라이더 연동
-        document.getElementById('vol-fire').addEventListener('input', e => fireGain && (fireGain.gain.value = e.target.value));
-        document.getElementById('vol-bird').addEventListener('input', e => birdGain && (birdGain.gain.value = e.target.value));
-        document.getElementById('vol-wave').addEventListener('input', e => waveGain && (waveGain.gain.value = e.target.value));
-        document.getElementById('vol-rain').addEventListener('input', e => rainGain && (rainGain.gain.value = e.target.value));
-        document.getElementById('vol-wind').addEventListener('input', e => windGain && (windGain.gain.value = e.target.value));
+        // 슬라이더 바인딩
+        const bindSlider = (id, gainNode, labelId) => {
+            const slider = document.getElementById(id);
+            slider.addEventListener('input', (e) => {
+                const val = e.target.value;
+                document.getElementById(labelId).innerText = val;
+                if (gainNode) gainNode.gain.value = val;
+            });
+        };
 
-        // 클릭 시 오디오 잠금 해제
+        bindSlider('vol-fire', () => fireGain, 'val-fire');
+        document.getElementById('vol-fire').addEventListener('input', e => { if(fireGain) fireGain.gain.value = e.target.value; document.getElementById('val-fire').innerText = e.target.value; });
+        document.getElementById('vol-wave').addEventListener('input', e => { if(waveGain) waveGain.gain.value = e.target.value; document.getElementById('val-wave').innerText = e.target.value; });
+        document.getElementById('vol-rain').addEventListener('input', e => { if(rainGain) rainGain.gain.value = e.target.value; document.getElementById('val-rain').innerText = e.target.value; });
+        document.getElementById('vol-wind').addEventListener('input', e => { if(windGain) windGain.gain.value = e.target.value; document.getElementById('val-wind').innerText = e.target.value; });
+        document.getElementById('vol-cricket').addEventListener('input', e => { if(cricketGain) cricketGain.gain.value = e.target.value; document.getElementById('val-cricket').innerText = e.target.value; });
+
         window.addEventListener('click', () => {
             initAudio();
             if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
         }, { once: true });
 
-        // 토글 버튼
         let isMuted = false;
         document.getElementById('audio-toggle').addEventListener('click', (e) => {
             initAudio();
@@ -480,7 +510,7 @@
             e.target.textContent = isMuted ? '🔇' : '🔊';
         });
 
-        // --- 4. 마우스 카메라 시점 컨트롤 ---
+        // --- 5. 마우스 회전 및 입체 음향 Listener 연동 ---
         let isDragging = false;
         let previousMousePosition = { x: 0, y: 0 };
         let cameraAngle = 0;
@@ -495,7 +525,6 @@
                 camera.position.z = Math.cos(cameraAngle) * 9;
                 camera.lookAt(0, 1.2, 0);
 
-                // 카메라 회전에 따라 Audio Listener의 위치와 정면 방향 업데이트 (3D 입체음향 핵심)
                 if (audioCtx && audioCtx.listener) {
                     const lx = camera.position.x;
                     const lz = camera.position.z;
@@ -508,17 +537,15 @@
             previousMousePosition = { x: e.clientX, y: e.clientY };
         });
 
-        // --- 5. 애니메이션 루프 ---
+        // --- 6. 애니메이션 루프 ---
         const clock = new THREE.Clock();
 
         function animate() {
             requestAnimationFrame(animate);
             const time = clock.getElapsedTime();
 
-            // 불빛 깜빡임
             fireLight.intensity = 2.0 + Math.sin(time * 10) * 0.4 + Math.cos(time * 19) * 0.3;
 
-            // 불꽃 파티클
             const fPos = fireGeo.attributes.position.array;
             for (let i = 1; i < fPos.length; i += 3) {
                 fPos[i] += 0.008;
@@ -526,14 +553,12 @@
             }
             fireGeo.attributes.position.needsUpdate = true;
 
-            // 대기 파티클
             const ePos = envGeo.attributes.position.array;
             for (let i = 1; i < ePos.length; i += 3) {
                 ePos[i] += Math.sin(time + i) * 0.003;
             }
             envGeo.attributes.position.needsUpdate = true;
 
-            // 나무 움직임
             trees.forEach((tree, idx) => {
                 tree.leaves.rotation.z = Math.sin(time * 1.2 + idx) * 0.02;
             });
