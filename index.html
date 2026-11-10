@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>3D 입체 힐링 숲 스페이스</title>
+    <!-- 유튜브 오디오 API를 위한 IFrame API 로드 -->
+    <script src="https://www.youtube.com/iframe_api"></script>
     <style>
         * {
             box-sizing: border-box;
@@ -22,6 +24,15 @@
             height: 100vh;
             display: block;
         }
+        /* 백그라운드 유튜브 오디오 숨김 처리 */
+        .hidden-yt-player {
+            position: absolute;
+            width: 0;
+            height: 0;
+            overflow: hidden;
+            opacity: 0;
+            pointer-events: none;
+        }
         .glass-panel {
             background: rgba(18, 20, 32, 0.6);
             backdrop-filter: blur(16px);
@@ -30,7 +41,7 @@
             border-radius: 20px;
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
         }
-        /* 좌측 상단: 배경 테마 고정 선택 */
+        /* 좌측 상단: 배경 테마 선택 */
         .time-container {
             position: absolute;
             top: 20px;
@@ -72,7 +83,7 @@
             box-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
         }
 
-        /* 우측 상단: 사운드 믹서 */
+        /* 우측 상단: 유튜브 원본 ASMR 믹서 */
         .sound-container {
             position: absolute;
             top: 20px;
@@ -173,6 +184,15 @@
 
     <div id="canvas-container"></div>
 
+    <!-- 유튜브 오디오 플레이어 임베드 영역 (숨김 처리) -->
+    <div class="hidden-yt-player">
+        <div id="yt-fire"></div>
+        <div id="yt-wave"></div>
+        <div id="yt-rain"></div>
+        <div id="yt-wind"></div>
+        <div id="yt-cricket"></div>
+    </div>
+
     <!-- 좌측 상단: 배경 테마 -->
     <div class="glass-panel time-container">
         <div class="panel-title">BACKGROUND THEME</div>
@@ -185,31 +205,31 @@
         </div>
     </div>
 
-    <!-- 우측 상단: 5가지 맞춤 사운드 믹서 -->
+    <!-- 우측 상단: 유튜브 원본 ASMR 믹서 -->
     <div class="glass-panel sound-container">
         <div class="sound-header">
-            <span class="panel-title" style="margin:0;">CUSTOM ASMR MIXER</span>
+            <span class="panel-title" style="margin:0;">YOUTUBE ASMR MIXER</span>
             <button class="audio-toggle-btn" id="audio-toggle">🔇</button>
         </div>
         <div class="sound-control">
-            <label>🔥 모닥불 (토도독 타탁) <span id="val-fire">0.0</span></label>
-            <input type="range" id="vol-fire" min="0" max="1" step="0.01" value="0.0">
+            <label>🔥 모닥불소리 <span id="val-fire">0</span>%</label>
+            <input type="range" id="vol-fire" min="0" max="100" value="0">
         </div>
         <div class="sound-control">
-            <label>🌊 파도 (스테레오 균형) <span id="val-wave">0.0</span></label>
-            <input type="range" id="vol-wave" min="0" max="1" step="0.01" value="0.0">
+            <label>🌊 파도소리 <span id="val-wave">0</span>%</label>
+            <input type="range" id="vol-wave" min="0" max="100" value="0">
         </div>
         <div class="sound-control">
-            <label>💧 잔잔한 물방울 <span id="val-rain">0.0</span></label>
-            <input type="range" id="vol-rain" min="0" max="1" step="0.01" value="0.0">
+            <label>🌧️ 비내리는소리 <span id="val-rain">0</span>%</label>
+            <input type="range" id="vol-rain" min="0" max="100" value="0">
         </div>
         <div class="sound-control">
-            <label>🍃 귓가 스치는 바람 <span id="val-wind">0.0</span></label>
-            <input type="range" id="vol-wind" min="0" max="1" step="0.01" value="0.0">
+            <label>💨 바람소리 <span id="val-wind">0</span>%</label>
+            <input type="range" id="vol-wind" min="0" max="100" value="0">
         </div>
         <div class="sound-control">
-            <label>🦗 풀벌레·새·풀잎 <span id="val-cricket">0.0</span></label>
-            <input type="range" id="vol-cricket" min="0" max="1" step="0.01" value="0.0">
+            <label>🦗 풀벌레소리 <span id="val-cricket">0</span>%</label>
+            <input type="range" id="vol-cricket" min="0" max="100" value="0">
         </div>
     </div>
 
@@ -401,206 +421,65 @@
 
         setTimeOfDay('night');
 
-        // --- 4. 요청사항이 모두 반영된 커스텀 오디오 엔진 ---
-        let audioCtx = null;
-        let masterGain = null;
-        let fireGain, waveGain, rainGain, windGain, cricketGain;
-        let isAudioInitialized = false;
+        // --- 4. 유튜브 원본 ASMR 링크 연동 플레이어 ---
+        let players = {};
+        let isGlobalMuted = false;
 
-        function initAudio() {
-            if (isAudioInitialized) return;
-            const AudioContext = window.AudioContext || window.webkitAudioContext;
-            audioCtx = new AudioContext();
-
-            masterGain = audioCtx.createGain();
-            masterGain.gain.value = 1.0;
-            masterGain.connect(audioCtx.destination);
-
-            function createPureNoiseNode(type, freq) {
-                const bufferSize = audioCtx.sampleRate * 2;
-                const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-                const data = buffer.getChannelData(0);
-                for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
-
-                const src = audioCtx.createBufferSource();
-                src.buffer = buffer;
-                src.loop = true;
-
-                const filter = audioCtx.createBiquadFilter();
-                filter.type = type;
-                filter.frequency.value = freq;
-
-                src.connect(filter);
-                src.start(0);
-                return filter;
-            }
-
-            // 1. 모닥불소리: "토도독 톡톡 탁탁 타타타탁 토톡 탁탁" 불규칙 장작 타는 소리
-            fireGain = audioCtx.createGain();
-            fireGain.gain.value = parseFloat(document.getElementById('vol-fire').value);
-            createPureNoiseNode('bandpass', 400).connect(fireGain);
-
-            function scheduleCrackles() {
-                if (!audioCtx) return;
-                if (fireGain && fireGain.gain.value > 0.001) {
-                    const burstCount = Math.floor(Math.random() * 4) + 1; // 불규칙한 타수 발생 (타타타탁 구현)
-                    for (let b = 0; b < burstCount; b++) {
-                        setTimeout(() => {
-                            if (!audioCtx || fireGain.gain.value <= 0.001) return;
-                            const osc = audioCtx.createOscillator();
-                            const g = audioCtx.createGain();
-                            osc.type = (Math.random() > 0.4) ? 'triangle' : 'sine';
-                            osc.frequency.setValueAtTime(1200 + Math.random() * 3200, audioCtx.currentTime);
-                            
-                            const dur = 0.01 + Math.random() * 0.025;
-                            g.gain.setValueAtTime(0.1 + Math.random() * 0.08, audioCtx.currentTime);
-                            g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + dur);
-
-                            osc.connect(g);
-                            g.connect(fireGain);
-                            osc.start();
-                            osc.stop(audioCtx.currentTime + dur + 0.01);
-                        }, b * (30 + Math.random() * 50));
-                    }
-                }
-                setTimeout(scheduleCrackles, 150 + Math.random() * 450);
-            }
-            scheduleCrackles();
-            fireGain.connect(masterGain);
-
-            // 2. 파도소리: 이어폰 좌우 밸런스 균형 배치 (스테레오 균일화)
-            waveGain = audioCtx.createGain();
-            waveGain.gain.value = parseFloat(document.getElementById('vol-wave').value);
-            const waveFilter = createPureNoiseNode('lowpass', 280);
-            waveFilter.connect(waveGain);
-
-            const lfo = audioCtx.createOscillator();
-            lfo.frequency.value = 0.1;
-            const waveLfoGain = audioCtx.createGain();
-            waveLfoGain.gain.value = 200;
-            lfo.connect(waveLfoGain);
-            waveLfoGain.connect(waveFilter.frequency);
-            lfo.start();
-            waveGain.connect(masterGain);
-
-            // 3. 비내리는소리: 잔잔한 물방울(Droplets) 떨어지는 소리 합성
-            rainGain = audioCtx.createGain();
-            rainGain.gain.value = parseFloat(document.getElementById('vol-rain').value);
-            
-            function scheduleDroplets() {
-                if (!audioCtx) return;
-                if (rainGain && rainGain.gain.value > 0.001) {
-                    const dropOsc = audioCtx.createOscillator();
-                    const dropGain = audioCtx.createGain();
-                    dropOsc.type = 'sine';
-                    const startFreq = 1800 + Math.random() * 1200;
-                    dropOsc.frequency.setValueAtTime(startFreq, audioCtx.currentTime);
-                    dropOsc.frequency.exponentialRampToValueAtTime(startFreq * 0.7, audioCtx.currentTime + 0.08);
-
-                    dropGain.gain.setValueAtTime(0.04, audioCtx.currentTime);
-                    dropGain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.08);
-
-                    dropOsc.connect(dropGain);
-                    dropGain.connect(rainGain);
-                    dropOsc.start();
-                    dropOsc.stop(audioCtx.currentTime + 0.09);
-                }
-                setTimeout(scheduleDroplets, 40 + Math.random() * 120);
-            }
-            scheduleDroplets();
-            createPureNoiseNode('lowpass', 800).connect(rainGain); // 배경 빗방울 잔향
-            rainGain.connect(masterGain);
-
-            // 4. 바람소리: 거부감 없는 부드러운 귓가 스침(Soft Breeze)
-            windGain = audioCtx.createGain();
-            windGain.gain.value = parseFloat(document.getElementById('vol-wind').value);
-            const windFilter = createPureNoiseNode('bandpass', 180);
-            windFilter.connect(windGain);
-
-            const windLfo = audioCtx.createOscillator();
-            windLfo.frequency.value = 0.2; // 부드러운 바람결 주기
-            const windLfoGain = audioCtx.createGain();
-            windLfoGain.gain.value = 80;
-            windLfo.connect(windLfoGain);
-            windLfoGain.connect(windFilter.frequency);
-            windLfo.start();
-            windGain.connect(masterGain);
-
-            // 5. 풀벌레소리: 귀뚜라미 울음 + 짹짹 새소리 + 풀잎 하늘거리는 소리 하모니
-            cricketGain = audioCtx.createGain();
-            cricketGain.gain.value = parseFloat(document.getElementById('vol-cricket').value);
-            
-            // 귀뚜라미 찌르르
-            function playCricket() {
-                if (!audioCtx || !cricketGain || cricketGain.gain.value < 0.001) {
-                    setTimeout(playCricket, 400);
-                    return;
-                }
-                const cOsc = audioCtx.createOscillator();
-                const cGain = audioCtx.createGain();
-                cOsc.type = 'sawtooth';
-                cOsc.frequency.setValueAtTime(4500 + Math.random() * 200, audioCtx.currentTime);
-                cGain.gain.setValueAtTime(0.02, audioCtx.currentTime);
-                cGain.gain.linearRampToValueAtTime(0.0001, audioCtx.currentTime + 0.15);
-                cOsc.connect(cGain);
-                cGain.connect(cricketGain);
-                cOsc.start();
-                cOsc.stop(audioCtx.currentTime + 0.16);
-                setTimeout(playCricket, 300 + Math.random() * 400);
-            }
-            playCricket();
-
-            // 짹짹 새소리
-            function playBird() {
-                if (!audioCtx || !cricketGain || cricketGain.gain.value < 0.001) {
-                    setTimeout(playBird, 2000);
-                    return;
-                }
-                const bOsc = audioCtx.createOscillator();
-                const bGain = audioCtx.createGain();
-                bOsc.type = 'sine';
-                bOsc.frequency.setValueAtTime(3000 + Math.random() * 800, audioCtx.currentTime);
-                bOsc.frequency.exponentialRampToValueAtTime(3800 + Math.random() * 500, audioCtx.currentTime + 0.1);
-                bGain.gain.setValueAtTime(0.025, audioCtx.currentTime);
-                bGain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.12);
-                bOsc.connect(bGain);
-                bGain.connect(cricketGain);
-                bOsc.start();
-                bOsc.stop(audioCtx.currentTime + 0.13);
-                setTimeout(playBird, 2500 + Math.random() * 4000);
-            }
-            playBird();
-
-            // 풀잎 마찰음 (사락사락)
-            const grassNoise = createPureNoiseNode('bandpass', 2500);
-            const grassGain = audioCtx.createGain();
-            grassGain.gain.value = 0.4;
-            grassNoise.connect(grassGain);
-            grassGain.connect(cricketGain);
-
-            cricketGain.connect(masterGain);
-
-            isAudioInitialized = true;
+        // 유튜브 IFrame API가 준비되면 실행
+        function onYouTubeIframeAPIReady() {
+            players['fire'] = new YT.Player('yt-fire', {
+                height: '0', width: '0', videoId: 'N_g3AiXF-q8',
+                playerVars: { 'autoplay': 0, 'loop': 1, 'playlist': 'N_g3AiXF-q8' }
+            });
+            players['wave'] = new YT.Player('yt-wave', {
+                height: '0', width: '0', videoId: 'n4Mdh3TEq_k',
+                playerVars: { 'autoplay': 0, 'loop': 1, 'playlist': 'n4Mdh3TEq_k' }
+            });
+            players['rain'] = new YT.Player('yt-rain', {
+                height: '0', width: '0', videoId: 'lQ0fS2meTYQ',
+                playerVars: { 'autoplay': 0, 'loop': 1, 'playlist': 'lQ0fS2meTYQ' }
+            });
+            players['wind'] = new YT.Player('yt-wind', {
+                height: '0', width: '0', videoId: 'KKi2qiuZZWQ',
+                playerVars: { 'autoplay': 0, 'loop': 1, 'playlist': 'KKi2qiuZZWQ' }
+            });
+            players['cricket'] = new YT.Player('yt-cricket', {
+                height: '0', width: '0', videoId: 'WPlZUsbWqBc',
+                playerVars: { 'autoplay': 0, 'loop': 1, 'playlist': 'WPlZUsbWqBc' }
+            });
         }
 
-        // 슬라이더 바인딩
-        document.getElementById('vol-fire').addEventListener('input', e => { initAudio(); if(fireGain) fireGain.gain.value = e.target.value; document.getElementById('val-fire').innerText = e.target.value; });
-        document.getElementById('vol-wave').addEventListener('input', e => { initAudio(); if(waveGain) waveGain.gain.value = e.target.value; document.getElementById('val-wave').innerText = e.target.value; });
-        document.getElementById('vol-rain').addEventListener('input', e => { initAudio(); if(rainGain) rainGain.gain.value = e.target.value; document.getElementById('val-rain').innerText = e.target.value; });
-        document.getElementById('vol-wind').addEventListener('input', e => { initAudio(); if(windGain) windGain.gain.value = e.target.value; document.getElementById('val-wind').innerText = e.target.value; });
-        document.getElementById('vol-cricket').addEventListener('input', e => { initAudio(); if(cricketGain) cricketGain.gain.value = e.target.value; document.getElementById('val-cricket').innerText = e.target.value; });
+        // 슬라이더 조절 시 해당 유튜브 플레이어 볼륨 및 재생 제어
+        function handleVolumeChange(soundKey, volumeValue) {
+            document.getElementById(`val-${soundKey}`).innerText = volumeValue;
+            if (players[soundKey] && typeof players[soundKey].setVolume === 'function') {
+                players[soundKey].setVolume(volumeValue);
+                if (volumeValue > 0) {
+                    if (players[soundKey].getPlayerState() !== YT.PlayerState.PLAYING) {
+                        players[soundKey].playVideo();
+                    }
+                } else {
+                    players[soundKey].pauseVideo();
+                }
+            }
+        }
 
-        window.addEventListener('click', () => {
-            initAudio();
-            if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
-        }, { once: true });
+        document.getElementById('vol-fire').addEventListener('input', e => handleVolumeChange('fire', e.target.value));
+        document.getElementById('vol-wave').addEventListener('input', e => handleVolumeChange('wave', e.target.value));
+        document.getElementById('vol-rain').addEventListener('input', e => handleVolumeChange('rain', e.target.value));
+        document.getElementById('vol-wind').addEventListener('input', e => handleVolumeChange('wind', e.target.value));
+        document.getElementById('vol-cricket').addEventListener('input', e => handleVolumeChange('cricket', e.target.value));
 
-        let isMuted = false;
+        // 마스터 음소거 버튼
         document.getElementById('audio-toggle').addEventListener('click', (e) => {
-            initAudio();
-            isMuted = !isMuted;
-            masterGain.gain.value = isMuted ? 0 : 1.0;
-            e.target.textContent = isMuted ? '🔇' : '🔊';
+            isGlobalMuted = !isGlobalMuted;
+            Object.keys(players).forEach(key => {
+                if (players[key] && typeof players[key].mute === 'function') {
+                    if (isGlobalMuted) players[key].mute();
+                    else players[key].unMute();
+                }
+            });
+            e.target.textContent = isGlobalMuted ? '🔇' : '🔊';
         });
 
         // --- 5. 마우스 시점 제어 ---
