@@ -185,15 +185,15 @@
         </div>
     </div>
 
-    <!-- 우측 상단: 5가지 3D 입체 ASMR 믹서 -->
+    <!-- 우측 상단: 5가지 3D 입체 ASMR 믹서 (기본값 모두 0.0) -->
     <div class="glass-panel sound-container">
         <div class="sound-header">
             <span class="panel-title" style="margin:0;">3D SPATIAL ASMR</span>
-            <button class="audio-toggle-btn" id="audio-toggle">🔊</button>
+            <button class="audio-toggle-btn" id="audio-toggle">🔇</button>
         </div>
         <div class="sound-control">
-            <label>🔥 모닥불 소리 <span id="val-fire">0.5</span></label>
-            <input type="range" id="vol-fire" min="0" max="1" step="0.01" value="0.5">
+            <label>🔥 모닥불 소리 <span id="val-fire">0.0</span></label>
+            <input type="range" id="vol-fire" min="0" max="1" step="0.01" value="0.0">
         </div>
         <div class="sound-control">
             <label>🌊 파도 소리 <span id="val-wave">0.0</span></label>
@@ -204,12 +204,12 @@
             <input type="range" id="vol-rain" min="0" max="1" step="0.01" value="0.0">
         </div>
         <div class="sound-control">
-            <label>💨 바람 소리 <span id="val-wind">0.2</span></label>
-            <input type="range" id="vol-wind" min="0" max="1" step="0.01" value="0.2">
+            <label>💨 바람 소리 <span id="val-wind">0.0</span></label>
+            <input type="range" id="vol-wind" min="0" max="1" step="0.01" value="0.0">
         </div>
         <div class="sound-control">
-            <label>🦗 풀벌레 소리 <span id="val-cricket">0.3</span></label>
-            <input type="range" id="vol-cricket" min="0" max="1" step="0.01" value="0.3">
+            <label>🦗 풀벌레 소리 <span id="val-cricket">0.0</span></label>
+            <input type="range" id="vol-cricket" min="0" max="1" step="0.01" value="0.0">
         </div>
     </div>
 
@@ -224,7 +224,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
     <script>
-        // --- 1. 힐링 명언 및 조언 데이터베이스 ---
+        // --- 1. 힐링 명언 데이터베이스 ---
         const quotesData = [
             { category: "🌱 마음 조언", text: "모든 일에는 저마다의 계절이 있습니다. 지금 당신에게는 잠시 쉬어가는 겨울이나 꽃을 피울 준비를 하는 봄이 찾아온 것뿐이에요." },
             { category: "💡 깊은 생각", text: "과거의 후회와 미래의 불안이라는 무거운 짐을 내려놓으세요. 당신에게 진정으로 중요한 시간은 오직 숨쉬고 있는 이 현재뿐입니다." },
@@ -261,19 +261,16 @@
         mainSunLight.position.set(10, 20, 10);
         scene.add(mainSunLight);
 
-        // 모닥불 포인트 조명
         const fireLight = new THREE.PointLight(0xffaa33, 2.5, 12);
         fireLight.position.set(0, 0.8, 0);
         scene.add(fireLight);
 
-        // 바닥
         const floorGeo = new THREE.PlaneGeometry(90, 90);
         const floorMat = new THREE.MeshStandardMaterial({ color: 0x0a140a, roughness: 0.9 });
         const floor = new THREE.Mesh(floorGeo, floorMat);
         floor.rotation.x = -Math.PI / 2;
         scene.add(floor);
 
-        // 3D 모닥불 오브젝트
         const campfireGroup = new THREE.Group();
         const logMat = new THREE.MeshStandardMaterial({ color: 0x2b1704, roughness: 0.8 });
         for (let i = 0; i < 5; i++) {
@@ -285,7 +282,6 @@
         }
         scene.add(campfireGroup);
 
-        // 불꽃 파티클
         const fireParticleCount = 50;
         const fireGeo = new THREE.BufferGeometry();
         const firePos = new Float32Array(fireParticleCount * 3);
@@ -299,7 +295,6 @@
         const fireParticles = new THREE.Points(fireGeo, fireMat);
         scene.add(fireParticles);
 
-        // 나무 생성
         const treeGroup = new THREE.Group();
         scene.add(treeGroup);
         const trees = [];
@@ -323,7 +318,6 @@
             trees.push({ leaves });
         }
 
-        // 주변 환경 파티클 (반딧불이/눈/나비)
         const particleCount = 220;
         const envGeo = new THREE.BufferGeometry();
         const envPos = new Float32Array(particleCount * 3);
@@ -337,7 +331,7 @@
         const envParticles = new THREE.Points(envGeo, envMat);
         scene.add(envParticles);
 
-        // --- 3. 시간대별 테마 설정 ---
+        // --- 3. 시간대별 테마 ---
         const timeConfigs = {
             dawn: { fog: 0x1b1c30, bg: 0x1b1c30, ambient: 0x333b55, sunColor: 0xffaa88, sunIntensity: 0.6, leavesColor: 0x1f3a38, particleColor: 0xddaaff },
             morning: { fog: 0x87ceeb, bg: 0x87ceeb, ambient: 0x667788, sunColor: 0xffffff, sunIntensity: 1.2, leavesColor: 0x2e6f40, particleColor: 0xffffff },
@@ -362,7 +356,7 @@
 
         setTimeOfDay('night');
 
-        // --- 4. 5가지 3D 입체 ASMR 오디오 엔진 ---
+        // --- 4. 5가지 순수 선택형 3D ASMR 오디오 엔진 ---
         let audioCtx = null;
         let masterGain = null;
         let firePanner, wavePanner, cricketPanner;
@@ -375,7 +369,7 @@
             audioCtx = new AudioContext();
 
             masterGain = audioCtx.createGain();
-            masterGain.gain.value = 0.6;
+            masterGain.gain.value = 1.0;
             masterGain.connect(audioCtx.destination);
 
             function createNoiseBufferSource(type, freq) {
@@ -397,7 +391,7 @@
                 return filter;
             }
 
-            // 1. 모닥불 (중앙 위치 0, 0, 0)
+            // 1. 모닥불 (기본 0.0)
             firePanner = audioCtx.createPanner();
             firePanner.panningModel = 'HRTF';
             firePanner.setPosition(0, 0, 0);
@@ -406,10 +400,9 @@
             fireGain.gain.value = parseFloat(document.getElementById('vol-fire').value);
             createNoiseBufferSource('bandpass', 450).connect(fireGain);
 
-            // 타닥타닥 불꽃 터지는 효과음 제너레이터
             function scheduleCrackles() {
                 if (!audioCtx) return;
-                if (fireGain.gain.value > 0.01) {
+                if (fireGain && fireGain.gain.value > 0.001) {
                     const osc = audioCtx.createOscillator();
                     const g = audioCtx.createGain();
                     osc.type = 'triangle';
@@ -428,7 +421,7 @@
             fireGain.connect(firePanner);
             firePanner.connect(masterGain);
 
-            // 2. 파도 소리 (좌측 전방 -15, 0, -15 위치에서 밀려오는 입체음)
+            // 2. 파도 소리 (기본 0.0)
             wavePanner = audioCtx.createPanner();
             wavePanner.panningModel = 'HRTF';
             wavePanner.setPosition(-15, 0, -15);
@@ -439,19 +432,19 @@
             waveGain.connect(wavePanner);
             wavePanner.connect(masterGain);
 
-            // 3. 비내리는 소리 (공간 전체 포괄)
+            // 3. 비내리는 소리 (기본 0.0)
             rainGain = audioCtx.createGain();
             rainGain.gain.value = parseFloat(document.getElementById('vol-rain').value);
             createNoiseBufferSource('lowpass', 1200).connect(rainGain);
             rainGain.connect(masterGain);
 
-            // 4. 바람 소리 (부드러운 저주파 백색소음)
+            // 4. 바람 소리 (기본 0.0)
             windGain = audioCtx.createGain();
             windGain.gain.value = parseFloat(document.getElementById('vol-wind').value);
             createNoiseBufferSource('bandpass', 200).connect(windGain);
             windGain.connect(masterGain);
 
-            // 5. 풀벌레 소리 (우측 숲 15, 0, -15 위치)
+            // 5. 풀벌레 소리 (기본 0.0)
             cricketPanner = audioCtx.createPanner();
             cricketPanner.panningModel = 'HRTF';
             cricketPanner.setPosition(15, 0, -15);
@@ -459,9 +452,8 @@
             cricketGain = audioCtx.createGain();
             cricketGain.gain.value = parseFloat(document.getElementById('vol-cricket').value);
             
-            // 풀벌레 찌르르 사운드 합성
             setInterval(() => {
-                if (!audioCtx || cricketGain.gain.value < 0.01) return;
+                if (!audioCtx || !cricketGain || cricketGain.gain.value < 0.001) return;
                 const cOsc = audioCtx.createOscillator();
                 const cGain = audioCtx.createGain();
                 cOsc.type = 'sawtooth';
@@ -480,22 +472,12 @@
             isAudioInitialized = true;
         }
 
-        // 슬라이더 바인딩
-        const bindSlider = (id, gainNode, labelId) => {
-            const slider = document.getElementById(id);
-            slider.addEventListener('input', (e) => {
-                const val = e.target.value;
-                document.getElementById(labelId).innerText = val;
-                if (gainNode) gainNode.gain.value = val;
-            });
-        };
-
-        bindSlider('vol-fire', () => fireGain, 'val-fire');
-        document.getElementById('vol-fire').addEventListener('input', e => { if(fireGain) fireGain.gain.value = e.target.value; document.getElementById('val-fire').innerText = e.target.value; });
-        document.getElementById('vol-wave').addEventListener('input', e => { if(waveGain) waveGain.gain.value = e.target.value; document.getElementById('val-wave').innerText = e.target.value; });
-        document.getElementById('vol-rain').addEventListener('input', e => { if(rainGain) rainGain.gain.value = e.target.value; document.getElementById('val-rain').innerText = e.target.value; });
-        document.getElementById('vol-wind').addEventListener('input', e => { if(windGain) windGain.gain.value = e.target.value; document.getElementById('val-wind').innerText = e.target.value; });
-        document.getElementById('vol-cricket').addEventListener('input', e => { if(cricketGain) cricketGain.gain.value = e.target.value; document.getElementById('val-cricket').innerText = e.target.value; });
+        // 슬라이더 조절 시에만 소리 발생
+        document.getElementById('vol-fire').addEventListener('input', e => { initAudio(); if(fireGain) fireGain.gain.value = e.target.value; document.getElementById('val-fire').innerText = e.target.value; });
+        document.getElementById('vol-wave').addEventListener('input', e => { initAudio(); if(waveGain) waveGain.gain.value = e.target.value; document.getElementById('val-wave').innerText = e.target.value; });
+        document.getElementById('vol-rain').addEventListener('input', e => { initAudio(); if(rainGain) rainGain.gain.value = e.target.value; document.getElementById('val-rain').innerText = e.target.value; });
+        document.getElementById('vol-wind').addEventListener('input', e => { initAudio(); if(windGain) windGain.gain.value = e.target.value; document.getElementById('val-wind').innerText = e.target.value; });
+        document.getElementById('vol-cricket').addEventListener('input', e => { initAudio(); if(cricketGain) cricketGain.gain.value = e.target.value; document.getElementById('val-cricket').innerText = e.target.value; });
 
         window.addEventListener('click', () => {
             initAudio();
@@ -506,11 +488,11 @@
         document.getElementById('audio-toggle').addEventListener('click', (e) => {
             initAudio();
             isMuted = !isMuted;
-            masterGain.gain.value = isMuted ? 0 : 0.6;
+            masterGain.gain.value = isMuted ? 0 : 1.0;
             e.target.textContent = isMuted ? '🔇' : '🔊';
         });
 
-        // --- 5. 마우스 회전 및 입체 음향 Listener 연동 ---
+        // --- 5. 마우스 시점 및 입체 음향 Listener 연동 ---
         let isDragging = false;
         let previousMousePosition = { x: 0, y: 0 };
         let cameraAngle = 0;
