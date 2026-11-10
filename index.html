@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D 사계절 힐링 스페이스</title>
+    <title>3D 감성 힐링 공간</title>
     <style>
         * {
             box-sizing: border-box;
@@ -22,7 +22,6 @@
             height: 100vh;
             display: block;
         }
-        /* 공통 패널 스타일 */
         .glass-panel {
             background: rgba(18, 20, 32, 0.55);
             backdrop-filter: blur(16px);
@@ -31,8 +30,8 @@
             border-radius: 20px;
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
         }
-        /* 좌측 상단: 테마 선택 패널 */
-        .theme-container {
+        /* 시간대 선택 패널 */
+        .time-container {
             position: absolute;
             top: 20px;
             left: 20px;
@@ -40,45 +39,46 @@
             z-index: 10;
         }
         .panel-title {
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 600;
             letter-spacing: 0.5px;
             color: rgba(255, 255, 255, 0.7);
             margin-bottom: 10px;
         }
-        .theme-buttons {
+        .time-buttons {
             display: flex;
-            gap: 8px;
+            gap: 6px;
+            flex-wrap: wrap;
         }
-        .theme-btn {
+        .time-btn {
             background: rgba(255, 255, 255, 0.08);
             border: 1px solid rgba(255, 255, 255, 0.15);
-            color: rgba(255, 255, 255, 0.8);
-            padding: 8px 14px;
+            color: rgba(255, 255, 255, 0.85);
+            padding: 7px 12px;
             border-radius: 12px;
             cursor: pointer;
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 500;
             transition: all 0.3s ease;
         }
-        .theme-btn:hover {
+        .time-btn:hover {
             background: rgba(255, 255, 255, 0.2);
             color: #fff;
         }
-        .theme-btn.active {
+        .time-btn.active {
             background: rgba(255, 255, 255, 0.9);
             color: #111;
             font-weight: 700;
             box-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
         }
 
-        /* 우측 상단: 사운드 믹서 패널 */
+        /* 사운드 믹서 패널 */
         .sound-container {
             position: absolute;
             top: 20px;
             right: 20px;
             padding: 18px;
-            width: 240px;
+            width: 230px;
             z-index: 10;
         }
         .sound-header {
@@ -95,10 +95,6 @@
             border-radius: 50%;
             cursor: pointer;
             font-size: 14px;
-            transition: background 0.2s;
-        }
-        .audio-toggle-btn:hover {
-            background: rgba(255, 255, 255, 0.25);
         }
         .sound-control {
             margin-bottom: 10px;
@@ -127,41 +123,30 @@
             cursor: pointer;
         }
 
-        /* 하단: 힐링 명언 패널 */
+        /* 하단 명언 패널 */
         .quote-container {
             position: absolute;
             bottom: 30px;
             left: 50%;
             transform: translateX(-50%);
             padding: 16px 28px;
-            max-width: 600px;
+            max-width: 580px;
             width: 90%;
             text-align: center;
             z-index: 10;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 8px;
         }
         .quote-text {
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 300;
             line-height: 1.6;
             color: rgba(255, 255, 255, 0.95);
-            letter-spacing: -0.2px;
         }
-        .refresh-quote-btn {
-            background: none;
-            border: none;
-            color: rgba(255, 255, 255, 0.5);
-            font-size: 11px;
-            cursor: pointer;
+        .spatial-tag {
+            font-size: 10px;
+            color: #88ffaa;
             margin-top: 4px;
-            text-decoration: underline;
-            transition: color 0.2s;
-        }
-        .refresh-quote-btn:hover {
-            color: rgba(255, 255, 255, 0.9);
+            display: block;
+            opacity: 0.8;
         }
     </style>
 </head>
@@ -169,38 +154,35 @@
 
     <div id="canvas-container"></div>
 
-    <!-- 좌측 상단: 사계절 테마 버튼 -->
-    <div class="glass-panel theme-container">
-        <div class="panel-title">SEASONAL THEME</div>
-        <div class="theme-buttons">
-            <button class="theme-btn" onclick="setSeason('spring')">🌸 봄</button>
-            <button class="theme-btn active" onclick="setSeason('summer')">🌿 여름</button>
-            <button class="theme-btn" onclick="setSeason('autumn')">🍁 가을</button>
-            <button class="theme-btn" onclick="setSeason('winter')">❄️ 겨울</button>
+    <!-- 좌측 상단: 시간대 변경 -->
+    <div class="glass-panel time-container">
+        <div class="panel-title">TIME OF DAY</div>
+        <div class="time-buttons">
+            <button class="time-btn" onclick="setTimeOfDay('dawn')">🌌 새벽</button>
+            <button class="time-btn" onclick="setTimeOfDay('morning')">🌅 아침</button>
+            <button class="time-btn" onclick="setTimeOfDay('noon')">☀️ 점심</button>
+            <button class="time-btn" onclick="setTimeOfDay('sunset')">🌇 저녁</button>
+            <button class="time-btn active" onclick="setTimeOfDay('night')">🌙 밤</button>
         </div>
     </div>
 
-    <!-- 우측 상단: 사운드 믹서 -->
+    <!-- 우측 상단: 입체 사운드 믹서 -->
     <div class="glass-panel sound-container">
         <div class="sound-header">
-            <span class="panel-title" style="margin:0;">HEALING SOUNDS</span>
+            <span class="panel-title" style="margin:0;">3D AUDIO MIXER</span>
             <button class="audio-toggle-btn" id="audio-toggle">🔊</button>
         </div>
         <div class="sound-control">
-            <label>🔥 모닥불</label>
-            <input type="range" id="vol-fire" min="0" max="1" step="0.01" value="0.4">
+            <label>🔥 3D 모닥불 (중앙 고정)</label>
+            <input type="range" id="vol-fire" min="0" max="1" step="0.01" value="0.5">
         </div>
         <div class="sound-control">
             <label>🐦 숲속 새소리</label>
-            <input type="range" id="vol-bird" min="0" max="1" step="0.01" value="0.2">
-        </div>
-        <div class="sound-control">
-            <label>🦗 밤 귀뚜라미</label>
-            <input type="range" id="vol-cricket" min="0" max="1" step="0.01" value="0.3">
+            <input type="range" id="vol-bird" min="0" max="1" step="0.01" value="0.3">
         </div>
         <div class="sound-control">
             <label>🌊 파도 소리</label>
-            <input type="range" id="vol-wave" min="0" max="1" step="0.01" value="0.1">
+            <input type="range" id="vol-wave" min="0" max="1" step="0.01" value="0.15">
         </div>
         <div class="sound-control">
             <label>🌧️ 빗소리</label>
@@ -212,54 +194,17 @@
         </div>
     </div>
 
-    <!-- 하단: 계절별 명언 -->
+    <!-- 하단 힐링 문구 -->
     <div class="glass-panel quote-container">
-        <div class="quote-text" id="quote-display">"지친 하루 끝, 조용히 불꽃을 바라보며 마음을 쉬어가세요."</div>
-        <button class="refresh-quote-btn" onclick="nextQuote()">다른 문장 보기</button>
+        <div class="quote-text" id="quote-display">"화면을 회전하면 모닥불 소리가 방향에 맞춰 입체적으로 이동합니다."</div>
+        <span class="spatial-tag">🎧 이어폰이나 헤드폰 착용 시 3D 입체 음향 효과가 극대화됩니다</span>
     </div>
 
-    <!-- Three.js 엔진 로드 -->
+    <!-- Three.js 엔진 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
     <script>
-        // --- 1. 명언 데이터 ---
-        const quotes = {
-            spring: [
-                "새로운 시작은 늘 잔잔하게 찾아옵니다. 당신의 봄날을 응원해요.",
-                "꽃이 피어나는 것처럼, 당신의 삶에도 따뜻한 온기가 스며들기를.",
-                "피어나는 모든 것들은 저마다의 속도가 있습니다. 조급해하지 마세요."
-            ],
-            summer: [
-                "지친 하루 끝, 조용히 밤바람 소리에 마음을 맡겨보세요.",
-                "울창한 숲처럼 단단하고 푸른 당신의 하루를 기억합니다.",
-                "반딧불이처럼 조용히 빛나는 당신만의 매력이 있습니다."
-            ],
-            autumn: [
-                "모든 것이 무르익어 가는 계절, 당신의 노력도 결실을 맺을 거예요.",
-                "떨어지는 낙엽처럼 마음속 불필요한 걱정들도 내려놓으세요.",
-                "노을빛처럼 따뜻하고 차분한 밤이 되기를 빕니다."
-            ],
-            winter: [
-                "차가운 눈송이 뒤에 숨어있는 모닥불처럼, 늘 따뜻함을 간직하세요.",
-                "조용히 눈 내리는 소리에 집중하며 혼자만의 온기를 느껴보세요.",
-                "겨울이 지나면 언제나 봄은 찾아옵니다."
-            ]
-        };
-
-        let currentSeason = 'summer';
-        let quoteIndex = 0;
-
-        function updateQuote() {
-            const list = quotes[currentSeason];
-            document.getElementById('quote-display').innerText = `"${list[quoteIndex % list.length]}"`;
-        }
-
-        function nextQuote() {
-            quoteIndex++;
-            updateQuote();
-        }
-
-        // --- 2. 3D 그래픽 씬 세팅 ---
+        // --- 1. 3D 씬 및 카메라 구성 ---
         const container = document.getElementById('canvas-container');
         const scene = new THREE.Scene();
         
@@ -271,15 +216,15 @@
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         container.appendChild(renderer.domElement);
 
-        // 조명
-        const ambientLight = new THREE.AmbientLight(0x222244, 1.2);
+        // 기본 조명
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
         scene.add(ambientLight);
 
-        const dirLight = new THREE.DirectionalLight(0x88aaff, 0.8);
-        dirLight.position.set(10, 20, 10);
-        scene.add(dirLight);
+        const mainSunLight = new THREE.DirectionalLight(0xffffff, 1.0);
+        mainSunLight.position.set(10, 20, 10);
+        scene.add(mainSunLight);
 
-        // 모닥불 조명 (PointLight)
+        // 모닥불 빛
         const fireLight = new THREE.PointLight(0xffaa33, 2.5, 12);
         fireLight.position.set(0, 0.8, 0);
         scene.add(fireLight);
@@ -291,13 +236,11 @@
         floor.rotation.x = -Math.PI / 2;
         scene.add(floor);
 
-        // --- 3D 모닥불 오브젝트 ---
+        // 3D 모닥불 오브젝트
         const campfireGroup = new THREE.Group();
-        // 장작 나무들
         const logMat = new THREE.MeshStandardMaterial({ color: 0x2b1704, roughness: 0.8 });
         for (let i = 0; i < 5; i++) {
-            const logGeo = new THREE.CylinderGeometry(0.08, 0.1, 1.2, 8);
-            const log = new THREE.Mesh(logGeo, logMat);
+            const log = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.1, 1.2, 8), logMat);
             log.rotation.z = Math.PI / 3;
             log.rotation.y = (i * Math.PI) / 2.5;
             log.position.y = 0.1;
@@ -306,7 +249,7 @@
         scene.add(campfireGroup);
 
         // 불꽃 파티클
-        const fireParticleCount = 60;
+        const fireParticleCount = 50;
         const fireGeo = new THREE.BufferGeometry();
         const firePos = new Float32Array(fireParticleCount * 3);
         for (let i = 0; i < fireParticleCount * 3; i += 3) {
@@ -319,120 +262,114 @@
         const fireParticles = new THREE.Points(fireGeo, fireMat);
         scene.add(fireParticles);
 
-        // --- 나무 생성 및 계절 관리 ---
+        // 나무 생성
         const treeGroup = new THREE.Group();
         scene.add(treeGroup);
         const trees = [];
+        const leavesMat = new THREE.MeshStandardMaterial({ color: 0x0f401b, roughness: 0.8 });
+        const trunkMat = new THREE.MeshStandardMaterial({ color: 0x1a1108 });
 
-        function createTrees(leafColor, trunkColor = 0x1a1108) {
-            // 기존 나무 제거
-            while(treeGroup.children.length > 0){ 
-                treeGroup.remove(treeGroup.children[0]); 
-            }
-            trees.length = 0;
+        for (let i = 0; i < 40; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const radius = 4.5 + Math.random() * 22;
+            const x = Math.sin(angle) * radius;
+            const z = Math.cos(angle) * radius;
 
-            const trunkMat = new THREE.MeshStandardMaterial({ color: trunkColor });
-            const leavesMat = new THREE.MeshStandardMaterial({ color: leafColor, roughness: 0.8 });
+            const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.35, 3.5, 6), trunkMat);
+            trunk.position.set(x, 1.75, z);
 
-            for (let i = 0; i < 45; i++) {
-                const angle = Math.random() * Math.PI * 2;
-                const radius = 4 + Math.random() * 25;
-                const x = Math.sin(angle) * radius;
-                const z = Math.cos(angle) * radius;
+            const leaves = new THREE.Mesh(new THREE.ConeGeometry(1.4, 3.5, 6), leavesMat);
+            leaves.position.set(x, 4, z);
 
-                const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.35, 3.5, 6), trunkMat);
-                trunk.position.set(x, 1.75, z);
-
-                const leaves = new THREE.Mesh(new THREE.ConeGeometry(1.4, 3.5, 6), leavesMat);
-                leaves.position.set(x, 4, z);
-
-                treeGroup.add(trunk);
-                treeGroup.add(leaves);
-                trees.push({ leaves, baseZ: z });
-            }
+            treeGroup.add(trunk);
+            treeGroup.add(leaves);
+            trees.push({ leaves });
         }
 
-        // --- 계절 파티클 (벚꽃/반딧불이/낙엽/눈) ---
-        const envParticleCount = 250;
+        // 대기 파티클
+        const particleCount = 200;
         const envGeo = new THREE.BufferGeometry();
-        const envPos = new Float32Array(envParticleCount * 3);
-
-        for (let i = 0; i < envParticleCount * 3; i += 3) {
+        const envPos = new Float32Array(particleCount * 3);
+        for (let i = 0; i < particleCount * 3; i += 3) {
             envPos[i] = (Math.random() - 0.5) * 40;
-            envPos[i+1] = Math.random() * 12;
+            envPos[i+1] = Math.random() * 10;
             envPos[i+2] = (Math.random() - 0.5) * 40;
         }
         envGeo.setAttribute('position', new THREE.BufferAttribute(envPos, 3));
-        const envMat = new THREE.PointsMaterial({ size: 0.2, transparent: true, opacity: 0.8 });
+        const envMat = new THREE.PointsMaterial({ color: 0xaaff88, size: 0.15, transparent: true, opacity: 0.7 });
         const envParticles = new THREE.Points(envGeo, envMat);
         scene.add(envParticles);
 
-        // 계절 세팅 함수
-        function setSeason(season) {
-            currentSeason = season;
-            quoteIndex = 0;
-            updateQuote();
-
-            // 버튼 UI 업데이트
-            document.querySelectorAll('.theme-btn').forEach(btn => btn.classList.remove('active'));
-            event?.target?.classList.add('active');
-
-            if (season === 'spring') {
-                scene.fog = new THREE.FogExp2(0x1a0f1a, 0.02);
-                renderer.setClearColor(0x1a0f1a);
-                floorMat.color.setHex(0x15101a);
-                createTrees(0xffb7c5); // 벚꽃 분홍
-                envMat.color.setHex(0xffc0cb);
-                envMat.size = 0.2;
-            } else if (season === 'summer') {
-                scene.fog = new THREE.FogExp2(0x050814, 0.025);
-                renderer.setClearColor(0x050814);
-                floorMat.color.setHex(0x0a140a);
-                createTrees(0x0f401b); // 푸른 여름
-                envMat.color.setHex(0xaaff88); // 반딧불이
-                envMat.size = 0.15;
-            } else if (season === 'autumn') {
-                scene.fog = new THREE.FogExp2(0x1a0c05, 0.02);
-                renderer.setClearColor(0x1a0c05);
-                floorMat.color.setHex(0x1a0f08);
-                createTrees(0xd9531e); // 가을 단풍
-                envMat.color.setHex(0xff9933);
-                envMat.size = 0.22;
-            } else if (season === 'winter') {
-                scene.fog = new THREE.FogExp2(0x0a101d, 0.025);
-                renderer.setClearColor(0x0a101d);
-                floorMat.color.setHex(0x101826);
-                createTrees(0x2a3d34, 0x11161d); // 설산 상록수
-                envMat.color.setHex(0xffffff); // 눈송이
-                envMat.size = 0.18;
+        // --- 2. 시간대 설정 (새벽 - 아침 - 점심 - 저녁 - 밤) ---
+        const timeConfigs = {
+            dawn: {
+                fog: 0x1b1c30,
+                bg: 0x1b1c30,
+                ambient: 0x333b55,
+                sunColor: 0xffaa88,
+                sunIntensity: 0.6,
+                leavesColor: 0x1f3a38,
+                particleColor: 0xddaaff
+            },
+            morning: {
+                fog: 0x87ceeb,
+                bg: 0x87ceeb,
+                ambient: 0x667788,
+                sunColor: 0xffffff,
+                sunIntensity: 1.2,
+                leavesColor: 0x2e6f40,
+                particleColor: 0xffffff
+            },
+            noon: {
+                fog: 0xa0e0ff,
+                bg: 0xa0e0ff,
+                ambient: 0x8899aa,
+                sunColor: 0xffffff,
+                sunIntensity: 1.6,
+                leavesColor: 0x1e8238,
+                particleColor: 0xffffff
+            },
+            sunset: {
+                fog: 0x3b1510,
+                bg: 0x3b1510,
+                ambient: 0x663322,
+                sunColor: 0xff6633,
+                sunIntensity: 1.4,
+                leavesColor: 0x4a2511,
+                particleColor: 0xffaa44
+            },
+            night: {
+                fog: 0x050510,
+                bg: 0x050510,
+                ambient: 0x111122,
+                sunColor: 0x4466aa,
+                sunIntensity: 0.4,
+                leavesColor: 0x0b2414,
+                particleColor: 0xaaff88
             }
+        };
+
+        function setTimeOfDay(timeKey) {
+            const cfg = timeConfigs[timeKey];
+            scene.fog = new THREE.FogExp2(cfg.fog, 0.02);
+            renderer.setClearColor(cfg.bg);
+            ambientLight.color.setHex(cfg.ambient);
+            mainSunLight.color.setHex(cfg.sunColor);
+            mainSunLight.intensity = cfg.sunIntensity;
+            leavesMat.color.setHex(cfg.leavesColor);
+            envMat.color.setHex(cfg.particleColor);
+
+            document.querySelectorAll('.time-btn').forEach(btn => btn.classList.remove('active'));
+            if (event && event.target) event.target.classList.add('active');
         }
 
-        // 초기 여름 설정
-        setSeason('summer');
+        setTimeOfDay('night');
 
-        // --- 마우스 카메라 컨트롤 ---
-        let isDragging = false;
-        let previousMousePosition = { x: 0, y: 0 };
-        let cameraAngle = 0;
-
-        window.addEventListener('mousedown', () => { isDragging = true; });
-        window.addEventListener('mouseup', () => { isDragging = false; });
-        window.addEventListener('mousemove', (e) => {
-            if (isDragging) {
-                const deltaX = e.clientX - previousMousePosition.x;
-                cameraAngle -= deltaX * 0.004;
-                camera.position.x = Math.sin(cameraAngle) * 9;
-                camera.position.z = Math.cos(cameraAngle) * 9;
-                camera.lookAt(0, 1.2, 0);
-            }
-            previousMousePosition = { x: e.clientX, y: e.clientY };
-        });
-
-        // --- 3. Web Audio API 사운드 엔진 ---
+        // --- 3. 입체 오디오 엔진 (3D Spatial Audio) ---
         let audioCtx = null;
         let masterGain = null;
-        let fireGain, birdGain, cricketGain, waveGain, rainGain, windGain;
+        let firePanner = null;
+        let fireGain, birdGain, waveGain, rainGain, windGain;
         let isAudioInitialized = false;
 
         function initAudio() {
@@ -444,7 +381,7 @@
             masterGain.gain.value = 0.6;
             masterGain.connect(audioCtx.destination);
 
-            // 노이즈 노드 생성기
+            // 노이즈 필터 생성 함수
             function createNoiseFilter(type, freq) {
                 const bufferSize = audioCtx.sampleRate * 2;
                 const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
@@ -464,78 +401,77 @@
                 return filter;
             }
 
-            // 1. 모닥불 소리
+            // 1. 3D 공간 입체 모닥불 사운드 (PannerNode 적용)
+            firePanner = audioCtx.createPanner();
+            firePanner.panningModel = 'HRTF';
+            firePanner.distanceModel = 'inverse';
+            firePanner.refDistance = 1;
+            firePanner.maxDistance = 10000;
+            firePanner.rolloffFactor = 1;
+            firePanner.setPosition(0, 0, 0); // 3D 공간 상의 모닥불 위치
+
             fireGain = audioCtx.createGain();
             fireGain.gain.value = parseFloat(document.getElementById('vol-fire').value);
-            createNoiseFilter('bandpass', 700).connect(fireGain);
-            fireGain.connect(masterGain);
+            
+            const fireNoise = createNoiseFilter('bandpass', 750);
+            fireNoise.connect(fireGain);
+            fireGain.connect(firePanner);
+            firePanner.connect(masterGain);
 
-            // 2. 새소리 (지저귐 오실레이터)
+            // 2. 새소리
             birdGain = audioCtx.createGain();
             birdGain.gain.value = parseFloat(document.getElementById('vol-bird').value);
             setInterval(() => {
                 if (!audioCtx || birdGain.gain.value < 0.01) return;
                 const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
+                const g = audioCtx.createGain();
                 osc.type = 'sine';
-                osc.frequency.setValueAtTime(2000 + Math.random() * 1000, audioCtx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(3000 + Math.random() * 500, audioCtx.currentTime + 0.1);
-                gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
-                osc.connect(gain);
-                gain.connect(birdGain);
+                osc.frequency.setValueAtTime(2200 + Math.random() * 800, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(3200 + Math.random() * 400, audioCtx.currentTime + 0.12);
+                g.gain.setValueAtTime(0.04, audioCtx.currentTime);
+                g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
+                osc.connect(g);
+                g.connect(birdGain);
                 osc.start();
                 osc.stop(audioCtx.currentTime + 0.15);
-            }, 3000);
+            }, 3500);
             birdGain.connect(masterGain);
 
-            // 3. 귀뚜라미 소리 (고주파 맥동)
-            cricketGain = audioCtx.createGain();
-            cricketGain.gain.value = parseFloat(document.getElementById('vol-cricket').value);
-            const cricketOsc = audioCtx.createOscillator();
-            const cricketLfo = audioCtx.createGain();
-            cricketOsc.type = 'triangle';
-            cricketOsc.frequency.value = 4500;
-            cricketOsc.connect(cricketGain);
-            cricketOsc.start();
-            cricketGain.connect(masterGain);
-
-            // 4. 파도 소리
+            // 3. 파도 소리
             waveGain = audioCtx.createGain();
             waveGain.gain.value = parseFloat(document.getElementById('vol-wave').value);
             createNoiseFilter('lowpass', 350).connect(waveGain);
             waveGain.connect(masterGain);
 
-            // 5. 빗소리
+            // 4. 빗소리
             rainGain = audioCtx.createGain();
             rainGain.gain.value = parseFloat(document.getElementById('vol-rain').value);
-            createNoiseFilter('lowpass', 1200).connect(rainGain);
+            createNoiseFilter('lowpass', 1100).connect(rainGain);
             rainGain.connect(masterGain);
 
-            // 6. 바람소리
+            // 5. 바람소리
             windGain = audioCtx.createGain();
             windGain.gain.value = parseFloat(document.getElementById('vol-wind').value);
-            createNoiseFilter('bandpass', 250).connect(windGain);
+            createNoiseFilter('bandpass', 220).connect(windGain);
             windGain.connect(masterGain);
 
             isAudioInitialized = true;
         }
 
-        // 볼륨 이벤트 연결
+        // 컨트롤러 슬라이더 연동
         document.getElementById('vol-fire').addEventListener('input', e => fireGain && (fireGain.gain.value = e.target.value));
         document.getElementById('vol-bird').addEventListener('input', e => birdGain && (birdGain.gain.value = e.target.value));
-        document.getElementById('vol-cricket').addEventListener('input', e => cricketGain && (cricketGain.gain.value = e.target.value));
         document.getElementById('vol-wave').addEventListener('input', e => waveGain && (waveGain.gain.value = e.target.value));
         document.getElementById('vol-rain').addEventListener('input', e => rainGain && (rainGain.gain.value = e.target.value));
         document.getElementById('vol-wind').addEventListener('input', e => windGain && (windGain.gain.value = e.target.value));
 
-        // 클릭 시 오디오 해제
+        // 클릭 시 오디오 잠금 해제
         window.addEventListener('click', () => {
             initAudio();
             if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
         }, { once: true });
 
-        // 음소거 토글
+        // 토글 버튼
         let isMuted = false;
         document.getElementById('audio-toggle').addEventListener('click', (e) => {
             initAudio();
@@ -544,39 +480,60 @@
             e.target.textContent = isMuted ? '🔇' : '🔊';
         });
 
-        // --- 4. 메인 루프 애니메이션 ---
+        // --- 4. 마우스 카메라 시점 컨트롤 ---
+        let isDragging = false;
+        let previousMousePosition = { x: 0, y: 0 };
+        let cameraAngle = 0;
+
+        window.addEventListener('mousedown', () => { isDragging = true; });
+        window.addEventListener('mouseup', () => { isDragging = false; });
+        window.addEventListener('mousemove', (e) => {
+            if (isDragging) {
+                const deltaX = e.clientX - previousMousePosition.x;
+                cameraAngle -= deltaX * 0.004;
+                camera.position.x = Math.sin(cameraAngle) * 9;
+                camera.position.z = Math.cos(cameraAngle) * 9;
+                camera.lookAt(0, 1.2, 0);
+
+                // 카메라 회전에 따라 Audio Listener의 위치와 정면 방향 업데이트 (3D 입체음향 핵심)
+                if (audioCtx && audioCtx.listener) {
+                    const lx = camera.position.x;
+                    const lz = camera.position.z;
+                    if (audioCtx.listener.setPosition) {
+                        audioCtx.listener.setPosition(lx, 2.5, lz);
+                        audioCtx.listener.setOrientation(-lx, -0.2, -lz, 0, 1, 0);
+                    }
+                }
+            }
+            previousMousePosition = { x: e.clientX, y: e.clientY };
+        });
+
+        // --- 5. 애니메이션 루프 ---
         const clock = new THREE.Clock();
 
         function animate() {
             requestAnimationFrame(animate);
             const time = clock.getElapsedTime();
 
-            // 모닥불 조명 깜빡임 효과
-            fireLight.intensity = 2.0 + Math.sin(time * 12) * 0.5 + Math.cos(time * 23) * 0.3;
+            // 불빛 깜빡임
+            fireLight.intensity = 2.0 + Math.sin(time * 10) * 0.4 + Math.cos(time * 19) * 0.3;
 
-            // 불꽃 파티클 올라가기
+            // 불꽃 파티클
             const fPos = fireGeo.attributes.position.array;
             for (let i = 1; i < fPos.length; i += 3) {
-                fPos[i] += 0.01;
+                fPos[i] += 0.008;
                 if (fPos[i] > 1.0) fPos[i] = 0;
             }
             fireGeo.attributes.position.needsUpdate = true;
 
-            // 계절 파티클 낙하/유영 효과
+            // 대기 파티클
             const ePos = envGeo.attributes.position.array;
-            for (let i = 0; i < ePos.length; i += 3) {
-                if (currentSeason === 'winter' || currentSeason === 'spring' || currentSeason === 'autumn') {
-                    ePos[i+1] -= 0.02; // 낙하
-                    ePos[i] += Math.sin(time + i) * 0.01;
-                    if (ePos[i+1] < 0) ePos[i+1] = 12;
-                } else {
-                    // 여름 반딧불이 자율 유영
-                    ePos[i+1] += Math.sin(time * 1.5 + i) * 0.005;
-                }
+            for (let i = 1; i < ePos.length; i += 3) {
+                ePos[i] += Math.sin(time + i) * 0.003;
             }
             envGeo.attributes.position.needsUpdate = true;
 
-            // 나무 살짝 흔들림
+            // 나무 움직임
             trees.forEach((tree, idx) => {
                 tree.leaves.rotation.z = Math.sin(time * 1.2 + idx) * 0.02;
             });
@@ -587,7 +544,6 @@
 
         animate();
 
-        // 리사이즈 대응
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
