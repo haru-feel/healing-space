@@ -30,7 +30,7 @@
             border-radius: 20px;
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
         }
-        /* 좌측 상단: 시간대 테마 패널 */
+        /* 좌측 상단: 시간대 테마 패널 (배경 고정 제어) */
         .time-container {
             position: absolute;
             top: 20px;
@@ -72,13 +72,13 @@
             box-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
         }
 
-        /* 우측 상단: 5대 입체 ASMR 믹서 패널 */
+        /* 우측 상단: 5가지 사운드 믹서 패널 */
         .sound-container {
             position: absolute;
             top: 20px;
             right: 20px;
             padding: 16px;
-            width: 240px;
+            width: 250px;
             z-index: 10;
         }
         .sound-header {
@@ -97,7 +97,7 @@
             font-size: 14px;
         }
         .sound-control {
-            margin-bottom: 9px;
+            margin-bottom: 10px;
         }
         .sound-control label {
             font-size: 11px;
@@ -123,7 +123,7 @@
             cursor: pointer;
         }
 
-        /* 하단: 힐링 명언 & 조언 패널 */
+        /* 하단: 힐링 명언 위젯 */
         .quote-container {
             position: absolute;
             bottom: 30px;
@@ -173,9 +173,9 @@
 
     <div id="canvas-container"></div>
 
-    <!-- 좌측 상단: 시간대 테마 -->
+    <!-- 좌측 상단: 배경 테마 고정 선택 -->
     <div class="glass-panel time-container">
-        <div class="panel-title">ATMOSPHERE TIME</div>
+        <div class="panel-title">BACKGROUND THEME</div>
         <div class="time-buttons">
             <button class="time-btn" onclick="setTimeOfDay('dawn')">🌌 새벽</button>
             <button class="time-btn" onclick="setTimeOfDay('morning')">🌅 아침</button>
@@ -185,35 +185,35 @@
         </div>
     </div>
 
-    <!-- 우측 상단: 5가지 3D 입체 ASMR 믹서 (기본값 모두 0.0) -->
+    <!-- 우측 상단: 5가지 사운드 믹서 -->
     <div class="glass-panel sound-container">
         <div class="sound-header">
-            <span class="panel-title" style="margin:0;">3D SPATIAL ASMR</span>
+            <span class="panel-title" style="margin:0;">5 ASMR SOUNDS</span>
             <button class="audio-toggle-btn" id="audio-toggle">🔇</button>
         </div>
         <div class="sound-control">
-            <label>🔥 모닥불 소리 <span id="val-fire">0.0</span></label>
+            <label>🔥 모닥불소리 <span id="val-fire">0.0</span></label>
             <input type="range" id="vol-fire" min="0" max="1" step="0.01" value="0.0">
         </div>
         <div class="sound-control">
-            <label>🌊 파도 소리 <span id="val-wave">0.0</span></label>
+            <label>🌊 파도소리 <span id="val-wave">0.0</span></label>
             <input type="range" id="vol-wave" min="0" max="1" step="0.01" value="0.0">
         </div>
         <div class="sound-control">
-            <label>🌧️ 비내리는 소리 <span id="val-rain">0.0</span></label>
+            <label>🌧️ 비내리는소리 <span id="val-rain">0.0</span></label>
             <input type="range" id="vol-rain" min="0" max="1" step="0.01" value="0.0">
         </div>
         <div class="sound-control">
-            <label>💨 바람 소리 <span id="val-wind">0.0</span></label>
+            <label>💨 바람소리 <span id="val-wind">0.0</span></label>
             <input type="range" id="vol-wind" min="0" max="1" step="0.01" value="0.0">
         </div>
         <div class="sound-control">
-            <label>🦗 풀벌레 소리 <span id="val-cricket">0.0</span></label>
+            <label>🦗 풀벌레소리 <span id="val-cricket">0.0</span></label>
             <input type="range" id="vol-cricket" min="0" max="1" step="0.01" value="0.0">
         </div>
     </div>
 
-    <!-- 하단: 힐링 명언 & 조언 위젯 -->
+    <!-- 하단: 힐링 명언 위젯 -->
     <div class="glass-panel quote-container">
         <div class="quote-category" id="q-category">✨ 오늘의 위로</div>
         <div class="quote-text" id="q-text">"마음의 속도를 줄이고, 지금 이 순간 스쳐 지나가는 바람과 불꽃의 온기에 집중해보세요."</div>
@@ -331,7 +331,7 @@
         const envParticles = new THREE.Points(envGeo, envMat);
         scene.add(envParticles);
 
-        // --- 3. 시간대별 테마 ---
+        // --- 3. 시간대별 테마 (사용자가 직접 누를 때만 변경됨) ---
         const timeConfigs = {
             dawn: { fog: 0x1b1c30, bg: 0x1b1c30, ambient: 0x333b55, sunColor: 0xffaa88, sunIntensity: 0.6, leavesColor: 0x1f3a38, particleColor: 0xddaaff },
             morning: { fog: 0x87ceeb, bg: 0x87ceeb, ambient: 0x667788, sunColor: 0xffffff, sunIntensity: 1.2, leavesColor: 0x2e6f40, particleColor: 0xffffff },
@@ -354,9 +354,9 @@
             if (event && event.target) event.target.classList.add('active');
         }
 
-        setTimeOfDay('night');
+        setTimeOfDay('night'); // 초기 기본 밤 배경
 
-        // --- 4. 5가지 순수 선택형 3D ASMR 오디오 엔진 ---
+        // --- 4. 5가지 정밀 맞춤 ASMR 오디오 엔진 ---
         let audioCtx = null;
         let masterGain = null;
         let firePanner, wavePanner, cricketPanner;
@@ -391,7 +391,7 @@
                 return filter;
             }
 
-            // 1. 모닥불 (기본 0.0)
+            // 1. 모닥불소리 (장작 타는 저음 + 타닥타닥 불꽃 튐)
             firePanner = audioCtx.createPanner();
             firePanner.panningModel = 'HRTF';
             firePanner.setPosition(0, 0, 0);
@@ -417,11 +417,10 @@
                 setTimeout(scheduleCrackles, 120 + Math.random() * 350);
             }
             scheduleCrackles();
-
             fireGain.connect(firePanner);
             firePanner.connect(masterGain);
 
-            // 2. 파도 소리 (기본 0.0)
+            // 2. 파도소리 (낮은 대역의 묵직한 파도 밀려오는 백색소음)
             wavePanner = audioCtx.createPanner();
             wavePanner.panningModel = 'HRTF';
             wavePanner.setPosition(-15, 0, -15);
@@ -432,19 +431,19 @@
             waveGain.connect(wavePanner);
             wavePanner.connect(masterGain);
 
-            // 3. 비내리는 소리 (기본 0.0)
+            // 3. 비내리는소리 (빗방울이 고르게 떨어지는 사운드)
             rainGain = audioCtx.createGain();
             rainGain.gain.value = parseFloat(document.getElementById('vol-rain').value);
             createNoiseBufferSource('lowpass', 1200).connect(rainGain);
             rainGain.connect(masterGain);
 
-            // 4. 바람 소리 (기본 0.0)
+            // 4. 바람소리 (부드럽게 스치는 밤바람 공명음)
             windGain = audioCtx.createGain();
             windGain.gain.value = parseFloat(document.getElementById('vol-wind').value);
             createNoiseBufferSource('bandpass', 200).connect(windGain);
             windGain.connect(masterGain);
 
-            // 5. 풀벌레 소리 (기본 0.0)
+            // 5. 풀벌레소리 (은은하게 울리는 숲속 귀뚜라미 하모니)
             cricketPanner = audioCtx.createPanner();
             cricketPanner.panningModel = 'HRTF';
             cricketPanner.setPosition(15, 0, -15);
@@ -472,7 +471,7 @@
             isAudioInitialized = true;
         }
 
-        // 슬라이더 조절 시에만 소리 발생
+        // 슬라이더 바인딩 (배경 변화 없음, 오직 소리만 제어)
         document.getElementById('vol-fire').addEventListener('input', e => { initAudio(); if(fireGain) fireGain.gain.value = e.target.value; document.getElementById('val-fire').innerText = e.target.value; });
         document.getElementById('vol-wave').addEventListener('input', e => { initAudio(); if(waveGain) waveGain.gain.value = e.target.value; document.getElementById('val-wave').innerText = e.target.value; });
         document.getElementById('vol-rain').addEventListener('input', e => { initAudio(); if(rainGain) rainGain.gain.value = e.target.value; document.getElementById('val-rain').innerText = e.target.value; });
