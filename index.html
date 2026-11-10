@@ -18,6 +18,7 @@
             font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
             user-select: none;
             color: #fff;
+            touch-action: none; /* 모바일 브라우저 기본 스크롤 동작 방지 */
         }
         #canvas-container {
             width: 100vw;
@@ -146,10 +147,11 @@
             overflow-x: auto;
             white-space: nowrap;
             -webkit-overflow-scrolling: touch;
-            scrollbar-width: none; /* 파이어폭스 스크롤바 숨김 */
+            scrollbar-width: none;
+            touch-action: pan-x; /* 테마 바는 가로 스크롤 허용 */
         }
         .time-container::-webkit-scrollbar {
-            display: none; /* 크롬/사파리 스크롤바 숨김 */
+            display: none;
         }
         .time-buttons {
             display: flex;
@@ -542,7 +544,7 @@
 
         function handleVolumeChange(soundKey, volumeValue) {
             document.getElementById(`val-${soundKey}`).innerText = volumeValue;
-            visualLevels[soundKey] = volumeValue / 100; // 3D 시각효과 연동 수치 업데이트
+            visualLevels[soundKey] = volumeValue / 100;
 
             if (players[soundKey] && typeof players[soundKey].setVolume === 'function') {
                 players[soundKey].setVolume(volumeValue);
@@ -573,23 +575,49 @@
             e.target.textContent = isGlobalMuted ? '🔇' : '🔊';
         });
 
-        // --- 5. 마우스 및 터치 시점 제어 ---
+        // --- 5. 마우스 및 터치 시점 제어 (모바일 터치 완벽 지원) ---
         let isDragging = false;
-        let previousMousePosition = { x: 0, y: 0 };
+        let previousPosition = { x: 0, y: 0 };
         let cameraAngle = 0;
 
-        window.addEventListener('mousedown', () => { isDragging = true; });
+        function updateCameraAngle(deltaX) {
+            cameraAngle -= deltaX * 0.004;
+            camera.position.x = Math.sin(cameraAngle) * 9;
+            camera.position.z = Math.cos(cameraAngle) * 9;
+            camera.lookAt(0, 1.2, 0);
+        }
+
+        // PC 마우스 이벤트
+        window.addEventListener('mousedown', (e) => { 
+            isDragging = true; 
+            previousPosition = { x: e.clientX, y: e.clientY };
+        });
         window.addEventListener('mouseup', () => { isDragging = false; });
         window.addEventListener('mousemove', (e) => {
             if (isDragging) {
-                const deltaX = e.clientX - previousMousePosition.x;
-                cameraAngle -= deltaX * 0.004;
-                camera.position.x = Math.sin(cameraAngle) * 9;
-                camera.position.z = Math.cos(cameraAngle) * 9;
-                camera.lookAt(0, 1.2, 0);
+                const deltaX = e.clientX - previousPosition.x;
+                updateCameraAngle(deltaX);
             }
-            previousMousePosition = { x: e.clientX, y: e.clientY };
+            previousPosition = { x: e.clientX, y: e.clientY };
         });
+
+        // 모바일 터치 이벤트
+        window.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 1) {
+                isDragging = true;
+                previousPosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+            }
+        }, { passive: true });
+
+        window.addEventListener('touchend', () => { isDragging = false; });
+
+        window.addEventListener('touchmove', (e) => {
+            if (isDragging && e.touches.length === 1) {
+                const deltaX = e.touches[0].clientX - previousPosition.x;
+                updateCameraAngle(deltaX);
+                previousPosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+            }
+        }, { passive: true });
 
         // --- 6. 애니메이션 루프 (3D 시각 효과 연동) ---
         const clock = new THREE.Clock();
