@@ -40,7 +40,7 @@
             border-radius: 20px;
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
         }
-        /* 좌측 상단: 시간대 테마 선택 */
+        /* 좌측 상단: 배경 테마 선택 */
         .time-container {
             position: absolute;
             top: 20px;
@@ -207,7 +207,7 @@
     <!-- 우측 상단: 사운드 & 3D 연동 믹서 -->
     <div class="glass-panel sound-container">
         <div class="sound-header">
-            <span class="panel-title" style="margin:0;">SOUND & VISUAL MIXER</span>
+            <span class="panel-title" style="margin:0;">YT ASMR & VISUAL MIXER</span>
             <button class="audio-toggle-btn" id="audio-toggle">🔇</button>
         </div>
         <div class="sound-control">
@@ -292,7 +292,7 @@
             { category: "🌊 넓은 바다", text: "강물이 결국 넓은 바다로 흘러가듯, 당신의 노력이 헛되지 않고 큰 결실을 맺을 것입니다." },
             { category: "🌙 달빛의 고요", text: "조용히 세상을 비추는 부드러운 달빛처럼 잔잔하고 기품 있게 하루를 마무리해보세요." },
             { category: "🌸 피어남", text: "당신이라는 꽃이 피어날 고유의 때가 반드시 찾아옵니다. 자신만의 피어남을 기다리세요." },
-            { category: "🍃 상쾌한 바람", text: "가슴속 묵힌 걱정거리를 스쳐 지나가는 시원한 산바람 속에 훨훨 날려 보내세요." },
+            { category: "🍃 상쾌한 바람", text: "가슴속 묵힌 걱정거리를 스쳐 지나가는 산바람 속에 훨훨 날려 보내세요." },
             { category: "⭐ 영원의 평온", text: "지구가 자전하듯 세상은 변하지만, 당신 안의 존엄한 가치는 영원히 빛나고 있습니다." },
             { category: "✨ 지금 이 순간", text: "숨을 쉬는 바로 지금, 당신은 이 세상에서 가장 귀하고 아름다운 존재임을 잊지 마세요." }
         ];
@@ -326,12 +326,10 @@
         mainSunLight.position.set(10, 20, 10);
         scene.add(mainSunLight);
 
-        // 모닥불 조명
         const fireLight = new THREE.PointLight(0xffaa33, 0.5, 12);
         fireLight.position.set(0, 0.8, 0);
         scene.add(fireLight);
 
-        // 바닥
         const floorGeo = new THREE.PlaneGeometry(90, 90);
         const floorMat = new THREE.MeshStandardMaterial({ color: 0x0a140a, roughness: 0.9 });
         const floor = new THREE.Mesh(floorGeo, floorMat);
@@ -391,7 +389,7 @@
         const rainParticles = new THREE.Points(rainGeo, rainMat);
         scene.add(rainParticles);
 
-        // 4. 나무 숲 (바람 애니메이션 대상)
+        // 4. 나무 숲
         const treeGroup = new THREE.Group();
         scene.add(treeGroup);
         const trees = [];
@@ -454,11 +452,13 @@
 
         setTimeOfDay('night');
 
-        // --- 4. 사운드 플레이어 & 3D 그래픽 연동 ---
+        // --- 4. 유튜브 원본 ASMR 플레이어 & 3D 연동 ---
         let players = {};
         let isGlobalMuted = false;
+        let isApiReady = false;
 
         function onYouTubeIframeAPIReady() {
+            isApiReady = true;
             players['fire'] = new YT.Player('yt-fire', { height: '0', width: '0', videoId: 'N_g3AiXF-q8', playerVars: { 'autoplay': 0, 'loop': 1, 'playlist': 'N_g3AiXF-q8' } });
             players['wave'] = new YT.Player('yt-wave', { height: '0', width: '0', videoId: 'n4Mdh3TEq_k', playerVars: { 'autoplay': 0, 'loop': 1, 'playlist': 'n4Mdh3TEq_k' } });
             players['rain'] = new YT.Player('yt-rain', { height: '0', width: '0', videoId: 'lQ0fS2meTYQ', playerVars: { 'autoplay': 0, 'loop': 1, 'playlist': 'lQ0fS2meTYQ' } });
@@ -468,16 +468,20 @@
 
         function handleVolumeChange(soundKey, volumeValue) {
             document.getElementById(`val-${soundKey}`).innerText = volumeValue;
-            visualLevels[soundKey] = volumeValue / 100; // 0.0 ~ 1.0 값으로 3D 시각효과 연동
+            visualLevels[soundKey] = volumeValue / 100;
 
             if (players[soundKey] && typeof players[soundKey].setVolume === 'function') {
-                players[soundKey].setVolume(volumeValue);
+                players[soundKey].setVolume(parseInt(volumeValue));
                 if (volumeValue > 0) {
-                    if (players[soundKey].getPlayerState() !== YT.PlayerState.PLAYING) {
-                        players[soundKey].playVideo();
-                    }
+                    try {
+                        if (players[soundKey].getPlayerState() !== YT.PlayerState.PLAYING) {
+                            players[soundKey].playVideo();
+                        }
+                    } catch(e) {}
                 } else {
-                    players[soundKey].pauseVideo();
+                    try {
+                        players[soundKey].pauseVideo();
+                    } catch(e) {}
                 }
             }
         }
@@ -487,6 +491,15 @@
         document.getElementById('vol-rain').addEventListener('input', e => handleVolumeChange('rain', e.target.value));
         document.getElementById('vol-wind').addEventListener('input', e => handleVolumeChange('wind', e.target.value));
         document.getElementById('vol-cricket').addEventListener('input', e => handleVolumeChange('cricket', e.target.value));
+
+        // 브라우저 정책 우회를 위한 첫 화면 클릭 시 전체 재생 활성화 촉진
+        window.addEventListener('click', () => {
+            Object.keys(players).forEach(key => {
+                if (players[key] && typeof players[key].unMute === 'function') {
+                    players[key].unMute();
+                }
+            });
+        }, { once: true });
 
         document.getElementById('audio-toggle').addEventListener('click', (e) => {
             isGlobalMuted = !isGlobalMuted;
@@ -517,14 +530,14 @@
             previousMousePosition = { x: e.clientX, y: e.clientY };
         });
 
-        // --- 6. 실시간 메인 애니메이션 루프 (3D 배경 연동) ---
+        // --- 6. 실시간 애니메이션 루프 (3D 배경 연동) ---
         const clock = new THREE.Clock();
 
         function animate() {
             requestAnimationFrame(animate);
             const time = clock.getElapsedTime();
 
-            // 🔥 1. 모닥불 불꽃 & 조망 연동
+            // 🔥 1. 모닥불 불꽃 & 조명 연동
             const fireLvl = visualLevels.fire;
             fireMat.opacity = fireLvl * 0.9;
             fireLight.intensity = 0.5 + fireLvl * 3.5 + Math.sin(time * 12) * (0.2 + fireLvl * 0.5);
@@ -536,7 +549,7 @@
             }
             fireGeo.attributes.position.needsUpdate = true;
 
-            // 🌊 2. 파도치는 넘실거리는 물결 연동
+            // 🌊 2. 파도치는 물결 연동
             const waveLvl = visualLevels.wave;
             waveMat.opacity = waveLvl * 0.75;
             const wPos = waveGeo.attributes.position.array;
@@ -561,7 +574,7 @@
                 tree.leaves.rotation.z = Math.sin(time * (1.5 + windLvl * 3) + idx) * (0.02 + windLvl * 0.12);
             });
 
-            // 🦗 5. 풀벌레 & 반딧불이 빛 연동
+            // 🦗 5. 풀벌레 & 반딧불이 연동
             const cricketLvl = visualLevels.cricket;
             envMat.opacity = 0.3 + cricketLvl * 0.6;
             envMat.size = 0.16 + cricketLvl * 0.1;
