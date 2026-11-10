@@ -34,57 +34,15 @@
             pointer-events: none;
         }
         .glass-panel {
-            background: rgba(18, 20, 32, 0.7);
+            background: rgba(18, 20, 32, 0.65);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
             border: 1px solid rgba(255, 255, 255, 0.12);
             border-radius: 20px;
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
         }
-        /* 좌측 상단: 배경 테마 선택 (모바일 대응) */
-        .time-container {
-            position: absolute;
-            top: 15px;
-            left: 15px;
-            padding: 12px 14px;
-            z-index: 10;
-            max-width: calc(100vw - 30px);
-        }
-        .panel-title {
-            font-size: 11px;
-            font-weight: 600;
-            letter-spacing: 0.8px;
-            color: rgba(255, 255, 255, 0.6);
-            margin-bottom: 8px;
-        }
-        .time-buttons {
-            display: flex;
-            gap: 5px;
-            flex-wrap: wrap;
-        }
-        .time-btn {
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            color: rgba(255, 255, 255, 0.85);
-            padding: 5px 9px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 11px;
-            font-weight: 500;
-            transition: all 0.3s ease;
-        }
-        .time-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
-            color: #fff;
-        }
-        .time-btn.active {
-            background: rgba(255, 255, 255, 0.9);
-            color: #111;
-            font-weight: 700;
-            box-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
-        }
 
-        /* 우측 상단: 유튜브 원본 ASMR 믹서 (모바일 스크롤 및 크기 최적화) */
+        /* 우측 상단: 접이식 유튜브 ASMR 믹서 */
         .sound-container {
             position: absolute;
             top: 15px;
@@ -92,24 +50,52 @@
             padding: 14px;
             width: 250px;
             max-width: calc(100vw - 30px);
-            max-height: calc(100vh - 120px);
-            overflow-y: auto;
             z-index: 10;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
         .sound-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 10px;
         }
-        .audio-toggle-btn {
+        .panel-title {
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.8px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+        .header-actions {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+        .icon-btn {
             background: rgba(255, 255, 255, 0.1);
             border: none;
             color: white;
-            padding: 6px 10px;
+            padding: 5px 8px;
             border-radius: 50%;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 12px;
+            transition: background 0.2s;
+        }
+        .icon-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
+        .sound-body {
+            margin-top: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            transition: max-height 0.3s ease, opacity 0.3s ease, margin 0.3s ease;
+            opacity: 1;
+        }
+        /* 접힘 클래스 적용 시 */
+        .sound-container.collapsed .sound-body {
+            max-height: 0;
+            opacity: 0;
+            margin-top: 0;
+            overflow: hidden;
+            pointer-events: none;
         }
         .sound-control {
             margin-bottom: 9px;
@@ -138,17 +124,67 @@
             cursor: pointer;
         }
 
-        /* 하단: 힐링 명언 위젯 */
-        .quote-container {
+        /* 하단 컨트롤 그룹 (배경 테마 + 명언 위젯) */
+        .bottom-group {
             position: absolute;
             bottom: 20px;
             left: 50%;
             transform: translateX(-50%);
-            padding: 14px 20px;
-            max-width: 600px;
             width: 92%;
-            text-align: center;
+            max-width: 600px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
             z-index: 10;
+        }
+
+        /* 하루명언 위로 이동한 테마 선택 바 (좌우 스크롤 가능) */
+        .time-container {
+            width: 100%;
+            padding: 8px 12px;
+            overflow-x: auto;
+            white-space: nowrap;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none; /* 파이어폭스 스크롤바 숨김 */
+        }
+        .time-container::-webkit-scrollbar {
+            display: none; /* 크롬/사파리 스크롤바 숨김 */
+        }
+        .time-buttons {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            min-width: max-content;
+        }
+        .time-btn {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: rgba(255, 255, 255, 0.85);
+            padding: 6px 12px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+        }
+        .time-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: #fff;
+        }
+        .time-btn.active {
+            background: rgba(255, 255, 255, 0.9);
+            color: #111;
+            font-weight: 700;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
+        }
+
+        /* 하단: 힐링 명언 위젯 */
+        .quote-container {
+            width: 100%;
+            padding: 14px 20px;
+            text-align: center;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -183,22 +219,19 @@
             color: #fff;
         }
 
-        /* 모바일 세로 화면 대응 미디어쿼리 */
+        /* 모바일 세로 화면 반응형 미디어쿼리 */
         @media (max-width: 768px) {
-            .time-container {
-                top: 10px;
-                left: 10px;
-                padding: 10px;
-            }
             .sound-container {
                 top: 10px;
                 right: 10px;
-                width: 220px;
-                padding: 12px;
+                width: 210px;
+                padding: 10px 12px;
             }
-            .quote-container {
-                bottom: 15px;
-                padding: 12px 16px;
+            .time-buttons {
+                justify-content: flex-start;
+            }
+            .bottom-group {
+                bottom: 12px;
             }
         }
     </style>
@@ -216,57 +249,76 @@
         <div id="yt-cricket"></div>
     </div>
 
-    <!-- 좌측 상단: 배경 테마 -->
-    <div class="glass-panel time-container">
-        <div class="panel-title">BACKGROUND THEME</div>
-        <div class="time-buttons">
-            <button class="time-btn" onclick="setTimeOfDay('dawn')">🌌 새벽</button>
-            <button class="time-btn" onclick="setTimeOfDay('morning')">🌅 아침</button>
-            <button class="time-btn" onclick="setTimeOfDay('noon')">☀️ 점심</button>
-            <button class="time-btn" onclick="setTimeOfDay('sunset')">🌇 저녁</button>
-            <button class="time-btn active" onclick="setTimeOfDay('night')">🌙 밤</button>
-        </div>
-    </div>
-
-    <!-- 우측 상단: 유튜브 원본 ASMR 믹서 -->
-    <div class="glass-panel sound-container">
+    <!-- 우측 상단: 접이식 유튜브 ASMR & 믹서 패널 -->
+    <div class="glass-panel sound-container" id="sound-panel">
         <div class="sound-header">
-            <span class="panel-title" style="margin:0;">YOUTUBE ASMR MIXER</span>
-            <button class="audio-toggle-btn" id="audio-toggle">🔇</button>
+            <span class="panel-title">ASMR MIXER</span>
+            <div class="header-actions">
+                <button class="icon-btn" id="audio-toggle" title="음소거 토글">🔇</button>
+                <button class="icon-btn" id="collapse-toggle" onclick="toggleMixer()" title="패널 접기/펼치기">▲</button>
+            </div>
         </div>
-        <div class="sound-control">
-            <label>🔥 모닥불소리 <span id="val-fire">0</span>%</label>
-            <input type="range" id="vol-fire" min="0" max="100" value="0">
-        </div>
-        <div class="sound-control">
-            <label>🌊 파도소리 <span id="val-wave">0</span>%</label>
-            <input type="range" id="vol-wave" min="0" max="100" value="0">
-        </div>
-        <div class="sound-control">
-            <label>🌧️ 비내리는소리 <span id="val-rain">0</span>%</label>
-            <input type="range" id="vol-rain" min="0" max="100" value="0">
-        </div>
-        <div class="sound-control">
-            <label>💨 바람소리 <span id="val-wind">0</span>%</label>
-            <input type="range" id="vol-wind" min="0" max="100" value="0">
-        </div>
-        <div class="sound-control">
-            <label>🦗 풀벌레소리 <span id="val-cricket">0</span>%</label>
-            <input type="range" id="vol-cricket" min="0" max="100" value="0">
+        <div class="sound-body">
+            <div class="sound-control">
+                <label>🔥 모닥불소리 <span id="val-fire">0</span>%</label>
+                <input type="range" id="vol-fire" min="0" max="100" value="0">
+            </div>
+            <div class="sound-control">
+                <label>🌊 파도소리 <span id="val-wave">0</span>%</label>
+                <input type="range" id="vol-wave" min="0" max="100" value="0">
+            </div>
+            <div class="sound-control">
+                <label>🌧️ 비내리는소리 <span id="val-rain">0</span>%</label>
+                <input type="range" id="vol-rain" min="0" max="100" value="0">
+            </div>
+            <div class="sound-control">
+                <label>💨 바람소리 <span id="val-wind">0</span>%</label>
+                <input type="range" id="vol-wind" min="0" max="100" value="0">
+            </div>
+            <div class="sound-control">
+                <label>🦗 풀벌레소리 <span id="val-cricket">0</span>%</label>
+                <input type="range" id="vol-cricket" min="0" max="100" value="0">
+            </div>
         </div>
     </div>
 
-    <!-- 하단: 힐링 명언 위젯 -->
-    <div class="glass-panel quote-container">
-        <div class="quote-category" id="q-category">✨ 오늘의 위로</div>
-        <div class="quote-text" id="q-text">"마음의 속도를 줄이고, 지금 이 순간 스쳐 지나가는 온기에 집중해보세요."</div>
-        <button class="refresh-btn" onclick="getRandomQuote()">🔄 다른 문장 보기</button>
+    <!-- 하단 영역: 하루 명언 위쪽으로 이동한 테마 선택 바 + 명언 위젯 -->
+    <div class="bottom-group">
+        <!-- 배경 테마 선택 바 (가로 스크롤 가능) -->
+        <div class="glass-panel time-container">
+            <div class="time-buttons">
+                <button class="time-btn" onclick="setTimeOfDay('dawn')">🌌 새벽</button>
+                <button class="time-btn" onclick="setTimeOfDay('morning')">🌅 아침</button>
+                <button class="time-btn" onclick="setTimeOfDay('noon')">☀️ 점심</button>
+                <button class="time-btn" onclick="setTimeOfDay('sunset')">🌇 저녁</button>
+                <button class="time-btn active" onclick="setTimeOfDay('night')">🌙 밤</button>
+            </div>
+        </div>
+
+        <!-- 힐링 명언 위젯 -->
+        <div class="glass-panel quote-container">
+            <div class="quote-category" id="q-category">✨ 오늘의 위로</div>
+            <div class="quote-text" id="q-text">"마음의 속도를 줄이고, 지금 이 순간 스쳐 지나가는 온기에 집중해보세요."</div>
+            <button class="refresh-btn" onclick="getRandomQuote()">🔄 다른 문장 보기</button>
+        </div>
     </div>
 
-    <!-- Three.js 엔진 -->
+    <!-- Three.js 라이브러리 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
     <script>
+        // --- 0. 믹서 패널 접기/펼치기 토글 함수 ---
+        function toggleMixer() {
+            const panel = document.getElementById('sound-panel');
+            const btn = document.getElementById('collapse-toggle');
+            panel.classList.toggle('collapsed');
+            if (panel.classList.contains('collapsed')) {
+                btn.innerText = '▼';
+            } else {
+                btn.innerText = '▲';
+            }
+        }
+
         // --- 1. 50가지 힐링 명언 데이터베이스 ---
         const quotesData = [
             { category: "🌱 마음 조언", text: "모든 일에는 저마다의 계절이 있습니다. 꽃을 피울 준비를 하는 당신의 시간을 믿어주세요." },
@@ -372,7 +424,7 @@
         }
         scene.add(campfireGroup);
 
-        // 🔥 모닥불 불꽃 파티클
+        // 🔥 모닥불 불꽃 3D 파티클
         const fireParticleCount = 80;
         const fireGeo = new THREE.BufferGeometry();
         const firePos = new Float32Array(fireParticleCount * 3);
@@ -386,7 +438,7 @@
         const fireParticles = new THREE.Points(fireGeo, fireMat);
         scene.add(fireParticles);
 
-        // 🌊 파도치는 물결 파티클
+        // 🌊 파도치는 물결 3D 파티클
         const waveParticleCount = 300;
         const waveGeo = new THREE.BufferGeometry();
         const wavePos = new Float32Array(waveParticleCount * 3);
@@ -400,7 +452,7 @@
         const waveParticles = new THREE.Points(waveGeo, waveMat);
         scene.add(waveParticles);
 
-        // 🌧️ 내리는 빗줄기 파티클
+        // 🌧️ 내리는 빗줄기 3D 파티클
         const rainParticleCount = 400;
         const rainGeo = new THREE.BufferGeometry();
         const rainPos = new Float32Array(rainParticleCount * 3);
@@ -490,7 +542,7 @@
 
         function handleVolumeChange(soundKey, volumeValue) {
             document.getElementById(`val-${soundKey}`).innerText = volumeValue;
-            visualLevels[soundKey] = volumeValue / 100; // 3D 시각효과 연동
+            visualLevels[soundKey] = volumeValue / 100; // 3D 시각효과 연동 수치 업데이트
 
             if (players[soundKey] && typeof players[soundKey].setVolume === 'function') {
                 players[soundKey].setVolume(volumeValue);
