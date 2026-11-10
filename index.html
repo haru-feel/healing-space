@@ -308,6 +308,9 @@
         getRandomQuote();
 
         // --- 2. 3D 씬 및 환경 구성 ---
+        // 각 슬라이더 수치를 저장할 시각 효과 레벨 상태 객체 추가
+        let visualLevels = { fire: 0, wave: 0, rain: 0, wind: 0, cricket: 0 };
+
         const container = document.getElementById('canvas-container');
         const scene = new THREE.Scene();
 
@@ -326,7 +329,7 @@
         mainSunLight.position.set(10, 20, 10);
         scene.add(mainSunLight);
 
-        const fireLight = new THREE.PointLight(0xffaa33, 2.5, 12);
+        const fireLight = new THREE.PointLight(0xffaa33, 0.5, 12);
         fireLight.position.set(0, 0.8, 0);
         scene.add(fireLight);
 
@@ -347,7 +350,8 @@
         }
         scene.add(campfireGroup);
 
-        const fireParticleCount = 50;
+        // [시각효과 1] 🔥 모닥불 불꽃 파티클
+        const fireParticleCount = 80;
         const fireGeo = new THREE.BufferGeometry();
         const firePos = new Float32Array(fireParticleCount * 3);
         for (let i = 0; i < fireParticleCount * 3; i += 3) {
@@ -356,9 +360,37 @@
             firePos[i+2] = (Math.random() - 0.5) * 0.4;
         }
         fireGeo.setAttribute('position', new THREE.BufferAttribute(firePos, 3));
-        const fireMat = new THREE.PointsMaterial({ color: 0xff6600, size: 0.15, transparent: true, opacity: 0.8 });
+        const fireMat = new THREE.PointsMaterial({ color: 0xff5500, size: 0.15, transparent: true, opacity: 0 });
         const fireParticles = new THREE.Points(fireGeo, fireMat);
         scene.add(fireParticles);
+
+        // [시각효과 2] 🌊 파도치는 물결 3D 파티클
+        const waveParticleCount = 300;
+        const waveGeo = new THREE.BufferGeometry();
+        const wavePos = new Float32Array(waveParticleCount * 3);
+        for (let i = 0; i < waveParticleCount * 3; i += 3) {
+            wavePos[i] = (Math.random() - 0.5) * 70;
+            wavePos[i+1] = 0.05;
+            wavePos[i+2] = (Math.random() - 0.5) * 70;
+        }
+        waveGeo.setAttribute('position', new THREE.BufferAttribute(wavePos, 3));
+        const waveMat = new THREE.PointsMaterial({ color: 0x77ccff, size: 0.25, transparent: true, opacity: 0 });
+        const waveParticles = new THREE.Points(waveGeo, waveMat);
+        scene.add(waveParticles);
+
+        // [시각효과 3] 🌧️ 내리는 빗줄기 3D 파티클
+        const rainParticleCount = 400;
+        const rainGeo = new THREE.BufferGeometry();
+        const rainPos = new Float32Array(rainParticleCount * 3);
+        for (let i = 0; i < rainParticleCount * 3; i += 3) {
+            rainPos[i] = (Math.random() - 0.5) * 50;
+            rainPos[i+1] = Math.random() * 20;
+            rainPos[i+2] = (Math.random() - 0.5) * 50;
+        }
+        rainGeo.setAttribute('position', new THREE.BufferAttribute(rainPos, 3));
+        const rainMat = new THREE.PointsMaterial({ color: 0xaaccff, size: 0.12, transparent: true, opacity: 0 });
+        const rainParticles = new THREE.Points(rainGeo, rainMat);
+        scene.add(rainParticles);
 
         const treeGroup = new THREE.Group();
         scene.add(treeGroup);
@@ -383,7 +415,8 @@
             trees.push({ leaves });
         }
 
-        const particleCount = 220;
+        // [시각효과 5] 🦗 반딧불이 대기 입자
+        const particleCount = 250;
         const envGeo = new THREE.BufferGeometry();
         const envPos = new Float32Array(particleCount * 3);
         for (let i = 0; i < particleCount * 3; i += 3) {
@@ -392,7 +425,7 @@
             envPos[i+2] = (Math.random() - 0.5) * 45;
         }
         envGeo.setAttribute('position', new THREE.BufferAttribute(envPos, 3));
-        const envMat = new THREE.PointsMaterial({ color: 0xaaff88, size: 0.16, transparent: true, opacity: 0.7 });
+        const envMat = new THREE.PointsMaterial({ color: 0xaaff88, size: 0.16, transparent: true, opacity: 0.3 });
         const envParticles = new THREE.Points(envGeo, envMat);
         scene.add(envParticles);
 
@@ -421,7 +454,7 @@
 
         setTimeOfDay('night');
 
-        // --- 4. 유튜브 원본 ASMR 링크 연동 플레이어 ---
+        // --- 4. 유튜브 원본 ASMR 링크 연동 플레이어 (수정 없음) ---
         let players = {};
         let isGlobalMuted = false;
 
@@ -449,9 +482,11 @@
             });
         }
 
-        // 슬라이더 조절 시 해당 유튜브 플레이어 볼륨 및 재생 제어
+        // 슬라이더 조절 시 해당 유튜브 플레이어 볼륨 및 재생 제어 + 시각효과 수치 업데이트 추가
         function handleVolumeChange(soundKey, volumeValue) {
             document.getElementById(`val-${soundKey}`).innerText = volumeValue;
+            visualLevels[soundKey] = volumeValue / 100; // 3D 시각효과 연동 수치 업데이트 (0.0 ~ 1.0)
+
             if (players[soundKey] && typeof players[soundKey].setVolume === 'function') {
                 players[soundKey].setVolume(volumeValue);
                 if (volumeValue > 0) {
@@ -500,31 +535,59 @@
             previousMousePosition = { x: e.clientX, y: e.clientY };
         });
 
-        // --- 6. 애니메이션 루프 ---
+        // --- 6. 애니메이션 루프 (3D 시각 효과 렌더링 업데이트 연동) ---
         const clock = new THREE.Clock();
 
         function animate() {
             requestAnimationFrame(animate);
             const time = clock.getElapsedTime();
 
-            fireLight.intensity = 2.0 + Math.sin(time * 10) * 0.4 + Math.cos(time * 19) * 0.3;
+            // 1. 🔥 모닥불 불꽃 & 조명 연동
+            const fireLvl = visualLevels.fire;
+            fireMat.opacity = fireLvl * 0.9;
+            fireLight.intensity = 0.5 + fireLvl * 3.5 + Math.sin(time * 12) * (0.2 + fireLvl * 0.5);
 
             const fPos = fireGeo.attributes.position.array;
             for (let i = 1; i < fPos.length; i += 3) {
-                fPos[i] += 0.008;
-                if (fPos[i] > 1.0) fPos[i] = 0;
+                fPos[i] += 0.005 + fireLvl * 0.015;
+                if (fPos[i] > 0.3 + fireLvl * 1.0) fPos[i] = 0;
             }
             fireGeo.attributes.position.needsUpdate = true;
 
+            // 2. 🌊 파도치는 물결 연동
+            const waveLvl = visualLevels.wave;
+            waveMat.opacity = waveLvl * 0.75;
+            const wPos = waveGeo.attributes.position.array;
+            for (let i = 0; i < wPos.length; i += 3) {
+                wPos[i+1] = Math.sin(time * 2 + wPos[i] * 0.1) * (0.1 + waveLvl * 0.6);
+            }
+            waveGeo.attributes.position.needsUpdate = true;
+
+            // 3. 🌧️ 내리는 빗줄기 연동
+            const rainLvl = visualLevels.rain;
+            rainMat.opacity = rainLvl * 0.8;
+            const rPos = rainGeo.attributes.position.array;
+            for (let i = 1; i < rPos.length; i += 3) {
+                rPos[i] -= 0.15 + rainLvl * 0.35;
+                if (rPos[i] < 0) rPos[i] = 20;
+            }
+            rainGeo.attributes.position.needsUpdate = true;
+
+            // 4. 🍃 바람 부는 숲 흔들림 연동
+            const windLvl = visualLevels.wind;
+            trees.forEach((tree, idx) => {
+                tree.leaves.rotation.z = Math.sin(time * (1.5 + windLvl * 3) + idx) * (0.02 + windLvl * 0.12);
+            });
+
+            // 5. 🦗 풀벌레 & 반딧불이 빛 연동
+            const cricketLvl = visualLevels.cricket;
+            envMat.opacity = 0.3 + cricketLvl * 0.6;
+            envMat.size = 0.16 + cricketLvl * 0.1;
             const ePos = envGeo.attributes.position.array;
             for (let i = 1; i < ePos.length; i += 3) {
-                ePos[i] += Math.sin(time + i) * 0.003;
+                ePos[i] += Math.sin(time * (1 + cricketLvl * 2) + i) * 0.004;
             }
             envGeo.attributes.position.needsUpdate = true;
-
-            trees.forEach((tree, idx) => {
-                tree.leaves.rotation.z = Math.sin(time * 1.2 + idx) * 0.02;
-            });
 
             camera.lookAt(0, 1.2, 0);
             renderer.render(scene, camera);
