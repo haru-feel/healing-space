@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Serene Sanctuary - 3D 감성 힐링 공간</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Three.js CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;600&family=Plus+Jakarta+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: 'Plus Jakarta Sans', 'Noto Serif KR', sans-serif;
+            background-color: #050b14;
+            color: #e2e8f0;
+            user-select: none;
+        }
+        
+        canvas {
+            display: block;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        /* Glassmorphism Styling */
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.45);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+        }
+
+        .glass-button {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .glass-button:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.15);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.1);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.2);
+            border-radius: 4px;
+        }
+
+        /* Subtle Fade Animation */
+        .fade-in {
+            animation: fadeIn 1.2s ease-out forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Pulse glow for audio button */
+        .glow-active {
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
+            border-color: rgba(129, 140, 248, 0.5);
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- 3D Canvas -->
+    <div id="canvas-container" class="absolute inset-0 w-full h-full z-0 cursor-grab active:cursor-grabbing"></div>
+
+    <!-- UI Overlay Header -->
+    <header class="absolute top-0 left-0 right-0 p-6 z-10 flex justify-between items-center pointer-events-none">
+        <div class="pointer-events-auto flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full glass-panel flex items-center justify-center text-teal-300">
+                <i class="fa-solid fa-tree text-lg"></i>
+            </div>
+            <div>
+                <h1 class="text-lg font-semibold tracking-wide text-slate-100">Serene Sanctuary</h1>
+                <p class="text-xs text-slate-400 font-light">마음을 다스리는 나만의 힐링 3D 공간</p>
+            </div>
+        </div>
+
+        <!-- Right Quick Control Buttons -->
+        <div class="pointer-events-auto flex items-center gap-3">
+            <button id="btn-audio-toggle" title="사운드 온/오프" class="glass-button w-11 h-11 rounded-full flex items-center justify-center text-slate-300 hover:text-white">
+                <i id="icon-audio" class="fa-solid fa-volume-xmark text-base"></i>
+            </button>
+            <button id="btn-info" title="도움말" class="glass-button w-11 h-11 rounded-full flex items-center justify-center text-slate-300 hover:text-white">
+                <i class="fa-solid fa-circle-info text-base"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Center Floating Affirmation Quote Card -->
+    <main class="absolute bottom-10 left-1/2 -translate-x-1/2 z-10 w-11/12 max-w-xl pointer-events-none">
+        <div id="quote-card" class="glass-panel p-6 sm:p-8 rounded-2xl text-center pointer-events-auto transition-all duration-500 hover:border-slate-500/30">
+            <div class="text-teal-400 text-xs tracking-widest uppercase mb-2 font-medium opacity-80">Today's Reflection</div>
+            <p id="quote-text" class="text-slate-200 text-sm sm:text-base leading-relaxed font-serif font-light min-h-[50px] flex items-center justify-center">
+                "천천히 깊게 호흡하세요. 이 조용한 순간이 당신에게 평온을 전해 줄 것입니다."
+            </p>
+            <div class="mt-4 flex justify-center items-center gap-4">
+                <button id="btn-new-quote" class="text-xs text-slate-400 hover:text-teal-300 transition-colors flex items-center gap-1.5 py-1 px-3 rounded-full hover:bg-white/5">
+                    <i class="fa-solid fa-rotate text-[10px]"></i> 새로운 글귀 보기
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Side Control Panel (Audio Synthesizer Controls) -->
+    <aside id="audio-panel" class="absolute top-24 right-6 z-10 w-72 glass-panel rounded-2xl p-5 transition-all duration-300 transform translate-x-0">
+        <div class="flex items-center justify-between mb-4 border-b border-white/10 pb-3">
+            <span class="text-xs font-semibold uppercase tracking-wider text-slate-300 flex items-center gap-2">
+                <i class="fa-solid fa-sliders text-teal-400"></i> 사운드 오케스트라
+            </span>
+            <span id="sound-status" class="text-[10px] bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full border border-emerald-500/30">Audio OFF</span>
+        </div>
+
+        <!-- Rain Sound Control -->
+        <div class="space-y-4 text-xs">
+            <div>
+                <div class="flex justify-between text-slate-300 mb-1">
+                    <span class="flex items-center gap-1.5"><i class="fa-solid fa-cloud-rain text-blue-400"></i> 포근한 빗소리</span>
+                    <span id="val-rain">50%</span>
+                </div>
+                <input type="range" id="slider-rain" min="0" max="100" value="50" class="w-full h-1.5 bg-slate-700/60 rounded-lg appearance-none cursor-pointer accent-teal-400">
+            </div>
+
+            <!-- Breeze / Wind Control -->
+            <div>
+                <div class="flex justify-between text-slate-300 mb-1">
+                    <span class="flex items-center gap-1.5"><i class="fa-solid fa-wind text-teal-300"></i> 밤바람 소리</span>
+                    <span id="val-wind">30%</span>
+                </div>
+                <input type="range" id="slider-wind" min="0" max="100" value="30" class="w-full h-1.5 bg-slate-700/60 rounded-lg appearance-none cursor-pointer accent-teal-400">
+            </div>
+
+            <!-- Singing Bowl Ambient Sound -->
+            <div>
+                <div class="flex justify-between text-slate-300 mb-1">
+                    <span class="flex items-center gap-1.5"><i class="fa-solid fa-bell text-amber-300"></i> 힐링 공명음 (Bowl)</span>
+                    <span id="val-bowl">40%</span>
+                </div>
+                <input type="range" id="slider-bowl" min="0" max="100" value="40" class="w-full h-1.5 bg-slate-700/60 rounded-lg appearance-none cursor-pointer accent-teal-400">
+            </div>
+        </div>
+
+        <div class="mt-5 pt-3 border-t border-white/10 text-[11px] text-slate-400 flex items-center gap-2">
+            <i class="fa-solid fa-hand-pointer text-teal-400"></i>
+            <span>화면을 드래그하면 3D 시점을 회전할 수 있습니다.</span>
+        </div>
+    </aside>
+
+    <!-- Info Modal -->
+    <div id="info-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm hidden">
+        <div class="glass-panel max-w-md w-full p-6 rounded-2xl space-y-4">
+            <div class="flex justify-between items-center border-b border-white/10 pb-3">
+                <h3 class="text-base font-semibold text-slate-100 flex items-center gap-2">
+                    <i class="fa-solid fa-sparkles text-teal-400"></i> Serene Sanctuary 소개
+                </h3>
+                <button id="btn-close-modal" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <p class="text-xs text-slate-300 leading-relaxed">
+                이 프로젝트는 바쁜 일상 속 지친 마음을 잠시 쉬어가기 위해 만든 **웹 3D 인터랙티브 공간**입니다. 외부 음원 파일 없이 웹 브라우저 자체 오디오 기술(Web Audio API)로 자연 사운드를 실시간 합성합니다.
+            </p>
+            <div class="text-xs text-slate-300 space-y-2">
+                <div class="font-medium text-teal-300">주요 사용 방법:</div>
+                <ul class="list-disc list-inside space-y-1 text-slate-400">
+                    <li>마우스 드래그 / 터치: 자유로운 3D 시점 전환</li>
+                    <li>우측 상단 볼륨 아이콘: 배경 앰비언트 음악 켜기/끄기</li>
+                    <li>우측 슬라이더: 빗소리, 바람소리, 공명음 볼륨 조절</li>
+                    <li>하단 카드: 마음에 평안을 주는 글귀 새로고침</li>
+                </ul>
+            </div>
+            <div class="pt-2 text-right">
+                <button id="btn-modal-ok" class="px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white text-xs font-medium rounded-xl transition-colors">
+                    공간으로 돌아가기
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3D Scene and Audio Application Script -->
+    <script>
+        /**
+         * 1. Quotes Collection
+         */
+        const quotes = [
+            "천천히 깊게 호흡하세요. 이 조용한 순간이 당신에게 평온을 전해 줄 것입니다.",
+            "지나간 일에 마음을 매이지 말고, 지금 당신이 마시는 숨 하나에 집중해보세요.",
+            "오늘 하루도 충분히 애썼습니다. 아무것도 하지 않아도 괜찮은 밤입니다.",
+            "나무는 비가 오나 바람이 불나 늘 그 자리에서 조용히 깊어져 갑니다.",
+            "마음 속 폭풍이 지나가면 한층 더 깊은 평안이 다가올 거예요.",
+            "어둠 속에서도 작은 반딧불이가 빛을 내듯, 당신 안에는 따뜻한 빛이 있습니다.",
+            "물 흐르듯 자연스럽게 당신의 생각과 감정을 그냥 지나쳐 보내세요.",
+            "고요함은 외로움이 아니라, 온전히 나를 만나는 가장 소중한 시간입니다."
+        ];
+
+        let quoteIndex = 0;
+        const quoteTextEl = document.getElementById('quote-text');
+        const btnNewQuote = document.getElementById('btn-new-quote');
+
+        btnNewQuote.addEventListener('click', () => {
+            quoteTextEl.style.opacity = '0';
+            quoteTextEl.style.transform = 'translateY(4px)';
+            setTimeout(() => {
+                quoteIndex = (quoteIndex + 1) % quotes.length;
+                quoteTextEl.textContent = `"${quotes[quoteIndex]}"`;
+                quoteTextEl.style.opacity = '1';
+                quoteTextEl.style.transform = 'translateY(0)';
+            }, 300);
+        });
+        quoteTextEl.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+
+        /**
+         * 2. Web Audio API Synthesizer (Procedural Ambient Sound)
+         */
+        let audioCtx = null;
+        let isAudioPlaying = false;
+        
+        // Audio nodes
+        let rainNode = null, rainGain = null;
+        let windNode = null, windGain = null, windFilter = null;
+        let bowlOsc = null, bowlGain = null;
+        let bowlTimer = null;
+
+        function initAudio() {
+            if (audioCtx) return;
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            audioCtx = new AudioContext();
+
+            // --- A. Rain Sound (Pink Noise) ---
+            const bufferSize = audioCtx.sampleRate * 2;
+            const rainBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const output = rainBuffer.getChannelData(0);
+            let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
+            
+            for (let i = 0; i < bufferSize; i++) {
+                let white = Math.random() * 2 - 1;
+                b0 = 0.99886 * b0 + white * 0.0555179;
+                b1 = 0.99332 * b1 + white * 0.0750759;
+                b2 = 0.96900 * b2 + white * 0.1538520;
+                b3 = 0.86650 * b3 + white * 0.3104856;
+                b4 = 0.55000 * b4 + white * 0.5329522;
+                b5 = -0.7616 * b5 - white * 0.0168980;
+                output[i] = b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362;
+                output[i] *= 0.04;
+                b6 = white * 0.115926;
+            }
+
+            rainNode = audioCtx.createBufferSource();
+            rainNode.buffer = rainBuffer;
+            rainNode.loop = true;
+
+            const rainFilter = audioCtx.createBiquadFilter();
+            rainFilter.type = 'lowpass';
+            rainFilter.frequency.value = 1000;
+
+            rainGain = audioCtx.createGain();
+            const rainVol = document.getElementById('slider-rain').value / 100;
+            rainGain.gain.setValueAtTime(rainVol * 0.2, audioCtx.currentTime);
+
+            rainNode.connect(rainFilter);
+            rainFilter.connect(rainGain);
+            rainGain.connect(audioCtx.destination);
+            rainNode.start();
+
+            // --- B. Breeze / Wind Sound ---
+            const windBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const wData = windBuffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) {
+                wData[i] = (Math.random() * 2 - 1) * 0.1;
+            }
+
+            windNode = audioCtx.createBufferSource();
+            windNode.buffer = windBuffer;
+            windNode.loop = true;
+
+            windFilter = audioCtx.createBiquadFilter();
+            windFilter.type = 'bandpass';
+            windFilter.frequency.value = 350;
+            windFilter.Q.value = 3.0;
+
+            windGain = audioCtx.createGain();
+            const windVol = document.getElementById('slider-wind').value / 100;
+            windGain.gain.setValueAtTime(windVol * 0.3, audioCtx.currentTime);
+
+            windNode.connect(windFilter);
+            windFilter.connect(windGain);
+            windGain.connect(audioCtx.destination);
+            windNode.start();
+
+            // LFO for wind modulation
+            setInterval(() => {
+                if (audioCtx && isAudioPlaying) {
+                    const freq = 200 + Math.sin(Date.now() * 0.0008) * 150;
+                    windFilter.frequency.setTargetAtTime(freq, audioCtx.currentTime, 1);
+                }
+            }, 200);
+
+            // --- C. Ambient Singing Bowl Sound Generator ---
+            bowlGain = audioCtx.createGain();
+            const bowlVol = document.getElementById('slider-bowl').value / 100;
+            bowlGain.gain.setValueAtTime(bowlVol * 0.15, audioCtx.currentTime);
+            bowlGain.connect(audioCtx.destination);
+
+            triggerBowlSound();
+            bowlTimer = setInterval(() => {
+                if (isAudioPlaying && Math.random() < 0.6) {
+                    triggerBowlSound();
+                }
+            }, 8000);
+        }
+
+        function triggerBowlSound() {
+            if (!audioCtx || !isAudioPlaying) return;
+            const freqs = [174, 285, 396, 432, 528];
+            const baseFreq = freqs[Math.floor(Math.random() * freqs.length)];
+
+            const osc = audioCtx.createOscillator();
+            const g = audioCtx.createGain();
+            
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(baseFreq, audioCtx.currentTime);
+
+            const now = audioCtx.currentTime;
+            g.gain.setValueAtTime(0, now);
+            g.gain.linearRampToValueAtTime(0.2, now + 1.5);
+            g.gain.exponentialRampToValueAtTime(0.0001, now + 7.5);
+
+            osc.connect(g);
+            g.connect(bowlGain);
+
+            osc.start(now);
+            osc.stop(now + 8.0);
+        }
+
+        // Toggle Audio Control
+        const btnAudio = document.getElementById('btn-audio-toggle');
+        const iconAudio = document.getElementById('icon-audio');
+        const soundStatus = document.getElementById('sound-status');
+
+        function toggleAudio() {
+            if (!audioCtx) {
+                initAudio();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
+            isAudioPlaying = !isAudioPlaying;
+
+            if (isAudioPlaying) {
+                iconAudio.className = "fa-solid fa-volume-high text-teal-300";
+                btnAudio.classList.add('glow-active');
+                soundStatus.textContent = "Audio ON";
+                soundStatus.className = "text-[10px] bg-teal-500/20 text-teal-300 px-2 py-0.5 rounded-full border border-teal-500/30";
+            } else {
+                iconAudio.className = "fa-solid fa-volume-xmark text-slate-400";
+                btnAudio.classList.remove('glow-active');
+                soundStatus.textContent = "Audio OFF";
+                soundStatus.className = "text-[10px] bg-slate-500/20 text-slate-400 px-2 py-0.5 rounded-full border border-slate-500/30";
+                if (audioCtx) {
+                    rainGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.2);
+                    windGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.2);
+                }
+                return;
+            }
+
+            // Restore Gain Levels
+            const rainVol = document.getElementById('slider-rain').value / 100;
+            const windVol = document.getElementById('slider-wind').value / 100;
+            rainGain.gain.setTargetAtTime(rainVol * 0.2, audioCtx.currentTime, 0.2);
+            windGain.gain.setTargetAtTime(windVol * 0.3, audioCtx.currentTime, 0.2);
+        }
+
+        btnAudio.addEventListener('click', toggleAudio);
+
+        // Volume Sliders Event Handling
+        document.getElementById('slider-rain').addEventListener('input', (e) => {
+            document.getElementById('val-rain').textContent = e.target.value + '%';
+            if (rainGain && isAudioPlaying) {
+                rainGain.gain.setTargetAtTime((e.target.value / 100) * 0.2, audioCtx.currentTime, 0.1);
+            }
+        });
+        document.getElementById('slider-wind').addEventListener('input', (e) => {
+            document.getElementById('val-wind').textContent = e.target.value + '%';
+            if (windGain && isAudioPlaying) {
+                windGain.gain.setTargetAtTime((e.target.value / 100) * 0.3, audioCtx.currentTime, 0.1);
+            }
+        });
+        document.getElementById('slider-bowl').addEventListener('input', (e) => {
+            document.getElementById('val-bowl').textContent = e.target.value + '%';
+            if (bowlGain && isAudioPlaying) {
+                bowlGain.gain.setTargetAtTime((e.target.value / 100) * 0.15, audioCtx.currentTime, 0.1);
+            }
+        });
+
+        // Modal Controls
+        const modal = document.getElementById('info-modal');
+        document.getElementById('btn-info').addEventListener('click', () => modal.classList.remove('hidden'));
+        document.getElementById('btn-close-modal').addEventListener('click', () => modal.classList.add('hidden'));
+        document.getElementById('btn-modal-ok').addEventListener('click', () => modal.classList.add('hidden'));
+
+
+        /**
+         * 3. THREE.JS 3D Scene Initialization
+         */
+        let scene, camera, renderer;
+        let fireflies, glowingTrees = [], bambooStems = [];
+        let mouseX = 0, mouseY = 0;
+        let targetRotationX = 0, targetRotationY = 0;
+        let isDragging = false;
+        let previousMousePosition = { x: 0, y: 0 };
+
+        const container = document.getElementById('canvas-container');
+
+        function init3D() {
+            // Scene Setup
+            scene = new THREE.Scene();
+            scene.fog = new THREE.FogExp2(0x06101e, 0.025);
+
+            // Camera Setup
+            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 3, 18);
+
+            // Renderer Setup
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.toneMapping = THREE.ACESFilmicToneMapping;
+            renderer.toneMappingExposure = 1.2;
+            container.appendChild(renderer.domElement);
+
+            // Lights
+            const ambientLight = new THREE.AmbientLight(0x0d1f38, 1.2);
+            scene.add(ambientLight);
+
+            const moonLight = new THREE.DirectionalLight(0x60a5fa, 1.5);
+            moonLight.position.set(20, 40, -10);
+            scene.add(moonLight);
+
+            // Center Mystic Crystal Glow
+            const centerLight = new THREE.PointLight(0x2dd4bf, 3, 25);
+            centerLight.position.set(0, 2, 0);
+            scene.add(centerLight);
+
+            // Create Terrain Ground
+            createTerrain();
+
+            // Create Mystical Forest Trees
+            createForest();
+
+            // Create Magical Glowing Orbs/Fireflies
+            createFireflies();
+
+            // Create Distant Stars
+            createStarfield();
+
+            // Window Resize & Mouse Drag Listeners
+            window.addEventListener('resize', onWindowResize);
+            setupInteractions();
+
+            // Start Animation Loop
+            animate();
+        }
+
+        // --- Ground Terrain Creation ---
+        function createTerrain() {
+            const geometry = new THREE.PlaneGeometry(120, 120, 64, 64);
+            geometry.rotateX(-Math.PI / 2);
+
+            // Add gentle elevation hills
+            const pos = geometry.attributes.position;
+            for (let i = 0; i < pos.count; i++) {
+                const x = pos.getX(i);
+                const z = pos.getZ(i);
+                const y = Math.sin(x * 0.1) * Math.cos(z * 0.1) * 1.2 + Math.sin(x * 0.03 + z * 0.05) * 2;
+                pos.setY(i, y);
+            }
+            geometry.computeVertexNormals();
+
+            const material = new THREE.MeshStandardMaterial({
+                color: 0x09172a,
+                roughness: 0.9,
+                metalness: 0.1,
+                flatShading: true
+            });
+
+            const terrain = new THREE.Mesh(geometry, material);
+            terrain.position.y = -2;
+            scene.add(terrain);
+        }
+
+        // --- Forest & Bamboo Elements ---
+        function createForest() {
+            const treeCount = 65;
+            const treeColors = [0x0d9488, 0x0284c7, 0x4f46e5, 0x14b8a6];
+
+            for (let i = 0; i < treeCount; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const radius = 6 + Math.random() * 45;
+                const x = Math.cos(angle) * radius;
+                const z = Math.sin(angle) * radius;
+
+                // Group for single tree
+                const treeGroup = new THREE.Group();
+                treeGroup.position.set(x, -2, z);
+
+                // Trunk (Bamboo / Stylized Tree)
+                const trunkHeight = 8 + Math.random() * 8;
+                const trunkGeo = new THREE.CylinderGeometry(0.15, 0.3, trunkHeight, 8);
+                const trunkMat = new THREE.MeshStandardMaterial({ color: 0x0f2942, roughness: 0.7 });
+                const trunk = new THREE.Mesh(trunkGeo, trunkMat);
+                trunk.position.y = trunkHeight / 2;
+                treeGroup.add(trunk);
+
+                // Glowing Canopy Foliage Rings
+                const rings = 3 + Math.floor(Math.random() * 3);
+                for (let r = 0; r < rings; r++) {
+                    const rSize = (rings - r) * 0.9 + 0.5;
+                    const folGeo = new THREE.ConeGeometry(rSize, 2.5, 6);
+                    const color = treeColors[Math.floor(Math.random() * treeColors.length)];
+                    const folMat = new THREE.MeshStandardMaterial({
+                        color: color,
+                        roughness: 0.3,
+                        emissive: color,
+                        emissiveIntensity: 0.25,
+                        flatShading: true
+                    });
+                    const foliage = new THREE.Mesh(folGeo, folMat);
+                    foliage.position.y = trunkHeight * 0.5 + r * 1.8;
+                    treeGroup.add(foliage);
+                }
+
+                // Random slight sway setup
+                treeGroup.userData = {
+                    initialRotationZ: (Math.random() - 0.5) * 0.05,
+                    swaySpeed: 0.5 + Math.random() * 1.5,
+                    offset: Math.random() * Math.PI * 2
+                };
+
+                scene.add(treeGroup);
+                bambooStems.push(treeGroup);
+            }
+        }
+
+        // --- Floating Glowing Fireflies ---
+        function createFireflies() {
+            const count = 250;
+            const geometry = new THREE.BufferGeometry();
+            const positions = new Float32Array(count * 3);
+            const scales = new Float32Array(count);
+
+            for (let i = 0; i < count; i++) {
+                positions[i * 3] = (Math.random() - 0.5) * 60;
+                positions[i * 3 + 1] = Math.random() * 20 - 1;
+                positions[i * 3 + 2] = (Math.random() - 0.5) * 60;
+                scales[i] = Math.random() * 0.4 + 0.1;
+            }
+
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+            // Custom glowing dot texture
+            const canvas = document.createElement('canvas');
+            canvas.width = 32;
+            canvas.height = 32;
+            const ctx = canvas.getContext('2d');
+            const grad = ctx.createRadialGradient(16, 16, 0, 16, 16, 16);
+            grad.addColorStop(0, 'rgba(167, 243, 208, 1)');
+            grad.addColorStop(0.4, 'rgba(45, 212, 191, 0.5)');
+            grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, 32, 32);
+
+            const texture = new THREE.CanvasTexture(canvas);
+
+            const material = new THREE.PointsMaterial({
+                size: 0.8,
+                map: texture,
+                transparent: true,
+                blending: THREE.AdditiveBlending,
+                depthWrite: false
+            });
+
+            fireflies = new THREE.Points(geometry, material);
+            scene.add(fireflies);
+        }
+
+        // --- Distant Starfield Background ---
+        function createStarfield() {
+            const count = 800;
+            const geometry = new THREE.BufferGeometry();
+            const positions = new Float32Array(count * 3);
+
+            for (let i = 0; i < count; i++) {
+                positions[i * 3] = (Math.random() - 0.5) * 300;
+                positions[i * 3 + 1] = Math.random() * 100 + 10;
+                positions[i * 3 + 2] = (Math.random() - 0.5) * 300;
+            }
+
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            const material = new THREE.PointsMaterial({
+                color: 0xffffff,
+                size: 0.4,
+                transparent: true,
+                opacity: 0.6
+            });
+
+            const stars = new THREE.Points(geometry, material);
+            scene.add(stars);
+        }
+
+        // --- Interactive Mouse Drag / Touch Control ---
+        function setupInteractions() {
+            const onPointerDown = (e) => {
+                isDragging = true;
+                previousMousePosition = {
+                    x: e.clientX || (e.touches && e.touches[0].clientX),
+                    y: e.clientY || (e.touches && e.touches[0].clientY)
+                };
+            };
+
+            const onPointerMove = (e) => {
+                const currentX = e.clientX || (e.touches && e.touches[0].clientX);
+                const currentY = e.clientY || (e.touches && e.touches[0].clientY);
+
+                if (isDragging && currentX !== undefined) {
+                    const deltaX = currentX - previousMousePosition.x;
+                    const deltaY = currentY - previousMousePosition.y;
+
+                    targetRotationY += deltaX * 0.003;
+                    targetRotationX += deltaY * 0.002;
+
+                    // Pitch limit
+                    targetRotationX = Math.max(-0.3, Math.min(0.4, targetRotationX));
+
+                    previousMousePosition = { x: currentX, y: currentY };
+                }
+            };
+
+            const onPointerUp = () => { isDragging = false; };
+
+            container.addEventListener('mousedown', onPointerDown);
+            window.addEventListener('mousemove', onPointerMove);
+            window.addEventListener('mouseup', onPointerUp);
+
+            container.addEventListener('touchstart', onPointerDown, { passive: true });
+            window.addEventListener('touchmove', onPointerMove, { passive: true });
+            window.addEventListener('touchend', onPointerUp);
+        }
+
+        // --- Window Resize Handler ---
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        // --- Animation Frame Loop ---
+        const clock = new THREE.Clock();
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            const elapsedTime = clock.getElapsedTime();
+
+            // Camera Orbit Smooth Interpolation
+            camera.position.x += (Math.sin(targetRotationY) * 18 - camera.position.x) * 0.05;
+            camera.position.z += (Math.cos(targetRotationY) * 18 - camera.position.z) * 0.05;
+            camera.position.y += (3 + targetRotationX * 10 - camera.position.y) * 0.05;
+            camera.lookAt(0, 2, 0);
+
+            // Animate Trees Gentle Swaying
+            bambooStems.forEach((tree) => {
+                const sway = Math.sin(elapsedTime * tree.userData.swaySpeed + tree.userData.offset) * 0.03;
+                tree.rotation.z = tree.userData.initialRotationZ + sway;
+            });
+
+            // Animate Floating Fireflies
+            if (fireflies) {
+                const positions = fireflies.geometry.attributes.position.array;
+                for (let i = 0; i < positions.length; i += 3) {
+                    // Vertical floating wave
+                    positions[i + 1] += Math.sin(elapsedTime * 1.5 + positions[i]) * 0.008;
+                    // Horizontal slow drift
+                    positions[i] += Math.cos(elapsedTime * 0.5 + positions[i + 2]) * 0.004;
+                }
+                fireflies.geometry.attributes.position.needsUpdate = true;
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        // Start 3D Initialization when page is loaded
+        window.onload = function() {
+            init3D();
+        };
+    </script>
+</body>
+</html>
