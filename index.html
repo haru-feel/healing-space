@@ -192,7 +192,7 @@
             <button class="audio-toggle-btn" id="audio-toggle">🔇</button>
         </div>
         <div class="sound-control">
-            <label>🔥 모닥불소리 <span id="val-fire">0.0</span></label>
+            <label>🔥 모닥불소리 (토도톡) <span id="val-fire">0.0</span></label>
             <input type="range" id="vol-fire" min="0" max="1" step="0.01" value="0.0">
         </div>
         <div class="sound-control">
@@ -285,7 +285,6 @@
             document.getElementById('q-text').innerText = `"${item.text}"`;
         }
         
-        // 초기 로드 시 50가지 중 무작위 1개 설정
         getRandomQuote();
 
         // --- 2. 3D 씬 및 환경 구성 ---
@@ -402,12 +401,11 @@
 
         setTimeOfDay('night');
 
-        // --- 4. 전문 ASMR 오디오 엔진 (파도소리 버그 완치 & BGM 잔향 100% 제거) ---
+        // --- 4. 전문 ASMR 사운드 엔진 (토도톡 모닥불 & 풀벌레 복구) ---
         let audioCtx = null;
         let masterGain = null;
         let firePanner, wavePanner, cricketPanner;
         let fireGain, waveGain, rainGain, windGain, cricketGain;
-        let waveFilter, waveLfoGain;
         let isAudioInitialized = false;
 
         function initAudio() {
@@ -419,7 +417,6 @@
             masterGain.gain.value = 1.0;
             masterGain.connect(audioCtx.destination);
 
-            // 오직 선택한 노이즈만 합성하는 버퍼 생성기
             function createPureNoiseNode(type, freq) {
                 const bufferSize = audioCtx.sampleRate * 2;
                 const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
@@ -439,52 +436,70 @@
                 return filter;
             }
 
-            // 1. 모닥불 소리 (타닥거림 + 장작 타는 저음)
+            // 1. 모닥불 소리 (토도톡- 타닥 장작 터지는 고주파 임펄스 패턴 강화)
             firePanner = audioCtx.createPanner();
             firePanner.panningModel = 'HRTF';
             firePanner.setPosition(0, 0, 0);
             
             fireGain = audioCtx.createGain();
             fireGain.gain.value = parseFloat(document.getElementById('vol-fire').value);
-            createPureNoiseNode('bandpass', 450).connect(fireGain);
+            createPureNoiseNode('bandpass', 380).connect(fireGain);
 
             function scheduleCrackles() {
                 if (!audioCtx) return;
                 if (fireGain && fireGain.gain.value > 0.001) {
+                    // 메인 타닥 소리
                     const osc = audioCtx.createOscillator();
                     const g = audioCtx.createGain();
-                    osc.type = 'triangle';
-                    osc.frequency.setValueAtTime(1000 + Math.random() * 2500, audioCtx.currentTime);
-                    g.gain.setValueAtTime(0.08, audioCtx.currentTime);
-                    g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.03 + Math.random() * 0.04);
+                    osc.type = (Math.random() > 0.5) ? 'sine' : 'triangle';
+                    osc.frequency.setValueAtTime(1400 + Math.random() * 3200, audioCtx.currentTime);
+                    
+                    const clickDur = 0.015 + Math.random() * 0.02;
+                    g.gain.setValueAtTime(0.12, audioCtx.currentTime);
+                    g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + clickDur);
+
                     osc.connect(g);
                     g.connect(fireGain);
                     osc.start();
-                    osc.stop(audioCtx.currentTime + 0.06);
+                    osc.stop(audioCtx.currentTime + clickDur + 0.01);
+
+                    // 연쇄 토도톡 이중 타격음
+                    if (Math.random() > 0.4) {
+                        setTimeout(() => {
+                            if (!audioCtx || fireGain.gain.value <= 0.001) return;
+                            const subOsc = audioCtx.createOscillator();
+                            const subG = audioCtx.createGain();
+                            subOsc.type = 'triangle';
+                            subOsc.frequency.setValueAtTime(2000 + Math.random() * 2000, audioCtx.currentTime);
+                            subG.gain.setValueAtTime(0.08, audioCtx.currentTime);
+                            subG.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.015);
+                            subOsc.connect(subG);
+                            subG.connect(fireGain);
+                            subOsc.start();
+                            subOsc.stop(audioCtx.currentTime + 0.02);
+                        }, 20 + Math.random() * 40);
+                    }
                 }
-                setTimeout(scheduleCrackles, 120 + Math.random() * 350);
+                setTimeout(scheduleCrackles, 60 + Math.random() * 220);
             }
             scheduleCrackles();
             fireGain.connect(firePanner);
             firePanner.connect(masterGain);
 
-            // 2. 파도소리 (전문 ASMR 하이파이 파도 수웰 합성 프로세서)
+            // 2. 파도소리
             wavePanner = audioCtx.createPanner();
             wavePanner.panningModel = 'HRTF';
-            wavePanner.distanceModel = 'linear';
-            wavePanner.setPosition(-8, 0, -8);
+            wavePanner.setPosition(-4, 0, -4);
 
             waveGain = audioCtx.createGain();
             waveGain.gain.value = parseFloat(document.getElementById('vol-wave').value);
 
-            // 전문 파도음: 필터 주파수가 주기적으로 변하며 싹 쓸려오는 실제 파도음 연출
-            waveFilter = createPureNoiseNode('lowpass', 300);
+            const waveFilter = createPureNoiseNode('lowpass', 300);
             waveFilter.connect(waveGain);
 
-            // 파도 밀려왔다 나가는 주기적 LFO 변조
             const lfo = audioCtx.createOscillator();
-            lfo.frequency.value = 0.12; // 8초 주기의 파도 모션
-            waveLfoGain = audioCtx.createGain();
+            lfo.frequency.value = 0.12;
+            const waveLfoGain = audioCtx.createGain();
             waveLfoGain.gain.value = 250;
             lfo.connect(waveLfoGain);
             waveLfoGain.connect(waveFilter.frequency);
@@ -493,39 +508,59 @@
             waveGain.connect(wavePanner);
             wavePanner.connect(masterGain);
 
-            // 3. 비내리는소리 (고해상도 다단계 빗소리 믹싱)
+            // 3. 비내리는소리
             rainGain = audioCtx.createGain();
             rainGain.gain.value = parseFloat(document.getElementById('vol-rain').value);
             createPureNoiseNode('lowpass', 1100).connect(rainGain);
             rainGain.connect(masterGain);
 
-            // 4. 바람소리 (자연스러운 저음의 바람 공명음)
+            // 4. 바람소리
             windGain = audioCtx.createGain();
             windGain.gain.value = parseFloat(document.getElementById('vol-wind').value);
             createPureNoiseNode('bandpass', 220).connect(windGain);
             windGain.connect(masterGain);
 
-            // 5. 풀벌레소리 (3D 풀숲 귀뚜라미 하모니)
+            // 5. 풀벌레소리 (위치 보정 및 이중 귀뚜라미 사운드 완벽 복구)
             cricketPanner = audioCtx.createPanner();
             cricketPanner.panningModel = 'HRTF';
-            cricketPanner.setPosition(8, 0, -8);
+            cricketPanner.setPosition(3, 0, -3);
 
             cricketGain = audioCtx.createGain();
             cricketGain.gain.value = parseFloat(document.getElementById('vol-cricket').value);
             
-            setInterval(() => {
-                if (!audioCtx || !cricketGain || cricketGain.gain.value < 0.001) return;
-                const cOsc = audioCtx.createOscillator();
+            function playCricketChirp() {
+                if (!audioCtx || !cricketGain || cricketGain.gain.value < 0.001) {
+                    setTimeout(playCricketChirp, 300);
+                    return;
+                }
+
+                // 찌르르 펄스 오실레이터
+                const cOsc1 = audioCtx.createOscillator();
+                const cOsc2 = audioCtx.createOscillator();
                 const cGain = audioCtx.createGain();
-                cOsc.type = 'sawtooth';
-                cOsc.frequency.setValueAtTime(4200 + Math.random() * 400, audioCtx.currentTime);
-                cGain.gain.setValueAtTime(0.015, audioCtx.currentTime);
-                cGain.gain.linearRampToValueAtTime(0.0001, audioCtx.currentTime + 0.2);
-                cOsc.connect(cGain);
+
+                cOsc1.type = 'sawtooth';
+                cOsc2.type = 'sine';
+
+                const baseFreq = 4600 + Math.random() * 300;
+                cOsc1.frequency.setValueAtTime(baseFreq, audioCtx.currentTime);
+                cOsc2.frequency.setValueAtTime(baseFreq * 1.05, audioCtx.currentTime);
+
+                cGain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+                cGain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.18);
+
+                cOsc1.connect(cGain);
+                cOsc2.connect(cGain);
                 cGain.connect(cricketGain);
-                cOsc.start();
-                cOsc.stop(audioCtx.currentTime + 0.22);
-            }, 400);
+
+                cOsc1.start();
+                cOsc2.start();
+                cOsc1.stop(audioCtx.currentTime + 0.19);
+                cOsc2.stop(audioCtx.currentTime + 0.19);
+
+                setTimeout(playCricketChirp, 250 + Math.random() * 450);
+            }
+            playCricketChirp();
 
             cricketGain.connect(cricketPanner);
             cricketPanner.connect(masterGain);
@@ -533,7 +568,7 @@
             isAudioInitialized = true;
         }
 
-        // 슬라이더 변경 시에만 각 소리 재생
+        // 슬라이더 바인딩
         document.getElementById('vol-fire').addEventListener('input', e => { initAudio(); if(fireGain) fireGain.gain.value = e.target.value; document.getElementById('val-fire').innerText = e.target.value; });
         document.getElementById('vol-wave').addEventListener('input', e => { initAudio(); if(waveGain) waveGain.gain.value = e.target.value; document.getElementById('val-wave').innerText = e.target.value; });
         document.getElementById('vol-rain').addEventListener('input', e => { initAudio(); if(rainGain) rainGain.gain.value = e.target.value; document.getElementById('val-rain').innerText = e.target.value; });
