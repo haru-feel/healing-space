@@ -4,8 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>3D 입체 힐링 숲 스페이스</title>
-    <!-- 유튜브 오디오 API를 위한 IFrame API 로드 -->
-    <script src="https://www.youtube.com/iframe_api"></script>
     <style>
         * {
             box-sizing: border-box;
@@ -18,14 +16,14 @@
             font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
             user-select: none;
             color: #fff;
-            touch-action: none;
+            touch-action: none; /* 모바일 브라우저 기본 스크롤 동작 방지 */
         }
         #canvas-container {
             width: 100vw;
             height: 100vh;
             display: block;
         }
-        /* 백그라운드 유튜브 오디오 숨김 처리 */
+        /* 오디오 플레이어는 JavaScript에서 생성하며 화면에는 표시하지 않습니다. */
         .hidden-yt-player {
             position: absolute;
             width: 0;
@@ -43,7 +41,7 @@
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
         }
 
-        /* 우측 상단: 접이식 유튜브 ASMR 믹서 */
+        /* 우측 상단: 접이식 자연 녹음 ASMR 믹서 */
         .sound-container {
             position: absolute;
             top: 15px;
@@ -140,7 +138,7 @@
             z-index: 10;
         }
 
-        /* 하루명언 위로 이동한 테마 선택 바 (가로 스크롤 가능) */
+        /* 하루명언 위로 이동한 테마 선택 바 (좌우 스크롤 가능) */
         .time-container {
             width: 100%;
             padding: 8px 12px;
@@ -148,7 +146,7 @@
             white-space: nowrap;
             -webkit-overflow-scrolling: touch;
             scrollbar-width: none;
-            touch-action: pan-x;
+            touch-action: pan-x; /* 테마 바는 가로 스크롤 허용 */
         }
         .time-container::-webkit-scrollbar {
             display: none;
@@ -242,9 +240,6 @@
 
     <div id="canvas-container"></div>
 
-    <!-- 유튜브 오디오 플레이어 임베드 영역 (숨김 처리) -->
-    <div class="hidden-yt-player">
-        <div id="yt-fire"></div>
         <div id="yt-wave"></div>
         <div id="yt-rain"></div>
         <div id="yt-wind"></div>
@@ -256,7 +251,7 @@
         <div class="sound-header">
             <span class="panel-title">ASMR MIXER</span>
             <div class="header-actions">
-                <button class="icon-btn" id="audio-toggle" title="음소거 토글">🔇</button>
+                <button class="icon-btn" id="audio-toggle" title="전체 음소거">🔊</button>
                 <button class="icon-btn" id="collapse-toggle" onclick="toggleMixer()" title="패널 접기/펼치기">▲</button>
             </div>
         </div>
@@ -281,6 +276,7 @@
                 <label>🦗 풀벌레소리 <span id="val-cricket">0</span>%</label>
                 <input type="range" id="vol-cricket" min="0" max="100" value="0">
             </div>
+            <div id="audio-status" style="font-size:10px;line-height:1.5;color:rgba(255,255,255,.65);margin-top:8px;">슬라이더를 올리면 실제 자연 녹음이 재생됩니다.</div>
         </div>
     </div>
 
@@ -289,11 +285,11 @@
         <!-- 배경 테마 선택 바 (가로 스크롤 가능) -->
         <div class="glass-panel time-container">
             <div class="time-buttons">
-                <button class="time-btn" onclick="setTimeOfDay('dawn')">🌌 새벽</button>
-                <button class="time-btn" onclick="setTimeOfDay('morning')">🌅 아침</button>
-                <button class="time-btn" onclick="setTimeOfDay('noon')">☀️ 점심</button>
-                <button class="time-btn" onclick="setTimeOfDay('sunset')">🌇 저녁</button>
-                <button class="time-btn active" onclick="setTimeOfDay('night')">🌙 밤</button>
+                <button class="time-btn" onclick="setTimeOfDay('dawn', this)">🌌 새벽</button>
+                <button class="time-btn" onclick="setTimeOfDay('morning', this)">🌅 아침</button>
+                <button class="time-btn" onclick="setTimeOfDay('noon', this)">☀️ 점심</button>
+                <button class="time-btn" onclick="setTimeOfDay('sunset', this)">🌇 저녁</button>
+                <button class="time-btn active" onclick="setTimeOfDay('night', this)">🌙 밤</button>
             </div>
         </div>
 
@@ -514,7 +510,7 @@
             night: { fog: 0x050510, bg: 0x050510, ambient: 0x111122, sunColor: 0x4466aa, sunIntensity: 0.4, leavesColor: 0x0b2414, particleColor: 0xaaff88 }
         };
 
-        function setTimeOfDay(timeKey) {
+        function setTimeOfDay(timeKey, clickedButton) {
             const cfg = timeConfigs[timeKey];
             scene.fog = new THREE.FogExp2(cfg.fog, 0.02);
             renderer.setClearColor(cfg.bg);
@@ -525,54 +521,154 @@
             envMat.color.setHex(cfg.particleColor);
 
             document.querySelectorAll('.time-btn').forEach(btn => btn.classList.remove('active'));
-            if (event && event.target) event.target.classList.add('active');
+            if (clickedButton) clickedButton.classList.add('active');
+            else document.querySelector('.time-btn[onclick*="night"]')?.classList.add('active');
         }
 
         setTimeOfDay('night');
 
-        // --- 4. 검증된 유튜브 최신 ASMR 링크 연동 플레이어 ---
-        let players = {};
+        // --- 4. 실제 자연 녹음 기반 ASMR 오디오 엔진 ---
+        // sounds 폴더에 fire.mp3, wave.mp3, rain.mp3, wind.mp3, cricket.mp3를 넣어주세요.
+        // 브라우저 자동재생 제한 때문에 첫 슬라이더 조작 또는 음소거 버튼 클릭 후 재생됩니다.
+        let audioContext = null;
+        let masterGain = null;
         let isGlobalMuted = false;
+        const audioChannels = {};
+        const soundKeys = ['fire', 'wave', 'rain', 'wind', 'cricket'];
+        const soundFiles = {
+            fire: 'sounds/fire.mp3',
+            wave: 'sounds/wave.mp3',
+            rain: 'sounds/rain.mp3',
+            wind: 'sounds/wind.mp3',
+            cricket: 'sounds/cricket.mp3'
+        };
 
-        function onYouTubeIframeAPIReady() {
-            players['fire'] = new YT.Player('yt-fire', { height: '0', width: '0', videoId: '2OEL4P5Kr54', playerVars: { 'autoplay': 0, 'loop': 1, 'playlist': '2OEL4P5Kr54' } });
-            players['wave'] = new YT.Player('yt-wave', { height: '0', width: '0', videoId: 'WHPEKLQID4U', playerVars: { 'autoplay': 0, 'loop': 1, 'playlist': 'WHPEKLQID4U' } });
-            players['rain'] = new YT.Player('yt-rain', { height: '0', width: '0', videoId: 'Jp6g0986z6w', playerVars: { 'autoplay': 0, 'loop': 1, 'playlist': 'Jp6g0986z6w' } });
-            players['wind'] = new YT.Player('yt-wind', { height: '0', width: '0', videoId: 'xNN7iTA57jM', playerVars: { 'autoplay': 0, 'loop': 1, 'playlist': 'xNN7iTA57jM' } });
-            players['cricket'] = new YT.Player('yt-cricket', { height: '0', width: '0', videoId: 'mPZkdNFkNps', playerVars: { 'autoplay': 0, 'loop': 1, 'playlist': 'mPZkdNFkNps' } });
+        function setAudioStatus(message, isError = false) {
+            const status = document.getElementById('audio-status');
+            if (!status) return;
+            status.textContent = message;
+            status.style.color = isError ? '#ffb4a9' : 'rgba(255,255,255,.65)';
         }
 
-        function handleVolumeChange(soundKey, volumeValue) {
-            document.getElementById(`val-${soundKey}`).innerText = volumeValue;
-            visualLevels[soundKey] = volumeValue / 100;
+        function initializeAudio() {
+            if (audioContext) {
+                if (audioContext.state === 'suspended') return audioContext.resume();
+                return Promise.resolve();
+            }
 
-            if (players[soundKey] && typeof players[soundKey].setVolume === 'function') {
-                players[soundKey].setVolume(volumeValue);
-                if (volumeValue > 0) {
-                    if (players[soundKey].getPlayerState() !== YT.PlayerState.PLAYING) {
-                        players[soundKey].playVideo();
-                    }
-                } else {
-                    players[soundKey].pauseVideo();
+            const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContextClass) {
+                setAudioStatus('이 브라우저는 오디오 재생을 지원하지 않습니다. Chrome 또는 Edge를 이용해 주세요.', true);
+                return Promise.reject(new Error('Web Audio API not supported'));
+            }
+
+            audioContext = new AudioContextClass();
+            masterGain = audioContext.createGain();
+            masterGain.gain.value = isGlobalMuted ? 0 : 1;
+            masterGain.connect(audioContext.destination);
+
+            soundKeys.forEach(key => {
+                const audio = new Audio(soundFiles[key]);
+                audio.loop = true;
+                audio.preload = 'auto';
+                audio.volume = 1; // 실제 음량은 Web Audio GainNode에서 조절
+
+                const mediaSource = audioContext.createMediaElementSource(audio);
+                const gain = audioContext.createGain();
+                gain.gain.value = 0;
+                mediaSource.connect(gain);
+                gain.connect(masterGain);
+
+                audio.addEventListener('error', () => {
+                    setAudioStatus(`${key} 음원 파일을 찾을 수 없습니다. sounds 폴더와 파일명을 확인해 주세요.`, true);
+                });
+                audio.addEventListener('canplay', () => {
+                    setAudioStatus('실제 자연 녹음 음원이 준비되었습니다. 각 슬라이더로 소리를 조절하세요.');
+                });
+
+                audioChannels[key] = { audio, gain };
+            });
+
+            // 초기 슬라이더 값은 모두 0이므로 초기에는 재생하지 않습니다.
+            return audioContext.resume();
+        }
+
+        async function setChannelVolume(soundKey, volumeValue, startAudio = true) {
+            const value = Math.max(0, Math.min(100, Number(volumeValue) || 0));
+            const valueLabel = document.getElementById(`val-${soundKey}`);
+            if (valueLabel) valueLabel.textContent = value;
+            visualLevels[soundKey] = value / 100;
+
+            if (startAudio && value > 0 && !audioContext) {
+                try {
+                    await initializeAudio();
+                } catch (error) {
+                    console.error('오디오 초기화 실패:', error);
+                    return;
                 }
+            } else if (audioContext && audioContext.state === 'suspended') {
+                try { await audioContext.resume(); } catch (error) { console.warn(error); }
+            }
+
+            const channel = audioChannels[soundKey];
+            if (!audioContext || !channel) return;
+
+            const now = audioContext.currentTime;
+            const targetGain = value === 0 ? 0 : (value / 100) * 0.72;
+            channel.gain.gain.cancelScheduledValues(now);
+            channel.gain.gain.setTargetAtTime(targetGain, now, 0.12);
+
+            if (value > 0) {
+                try {
+                    await channel.audio.play();
+                    setAudioStatus('실제 자연 녹음 재생 중 · 개별 볼륨을 조절할 수 있습니다.');
+                } catch (error) {
+                    console.error(`${soundKey} 재생 실패:`, error);
+                    setAudioStatus('재생이 차단되었습니다. 슬라이더를 다시 움직이거나 재생 버튼을 눌러주세요.', true);
+                }
+            } else {
+                channel.audio.pause();
+                channel.audio.currentTime = 0;
             }
         }
 
-        document.getElementById('vol-fire').addEventListener('input', e => handleVolumeChange('fire', e.target.value));
-        document.getElementById('vol-wave').addEventListener('input', e => handleVolumeChange('wave', e.target.value));
-        document.getElementById('vol-rain').addEventListener('input', e => handleVolumeChange('rain', e.target.value));
-        document.getElementById('vol-wind').addEventListener('input', e => handleVolumeChange('wind', e.target.value));
-        document.getElementById('vol-cricket').addEventListener('input', e => handleVolumeChange('cricket', e.target.value));
+        function handleVolumeChange(soundKey, volumeValue) {
+            setChannelVolume(soundKey, volumeValue, true);
+        }
 
-        document.getElementById('audio-toggle').addEventListener('click', (e) => {
-            isGlobalMuted = !isGlobalMuted;
-            Object.keys(players).forEach(key => {
-                if (players[key] && typeof players[key].mute === 'function') {
-                    if (isGlobalMuted) players[key].mute();
-                    else players[key].unMute();
-                }
+        soundKeys.forEach(key => {
+            document.getElementById(`vol-${key}`).addEventListener('input', event => {
+                handleVolumeChange(key, event.target.value);
             });
-            e.target.textContent = isGlobalMuted ? '🔇' : '🔊';
+        });
+
+        document.getElementById('audio-toggle').addEventListener('click', async (event) => {
+            try {
+                if (!audioContext) await initializeAudio();
+                else if (audioContext.state === 'suspended') await audioContext.resume();
+
+                isGlobalMuted = !isGlobalMuted;
+                const now = audioContext.currentTime;
+                masterGain.gain.cancelScheduledValues(now);
+                masterGain.gain.setTargetAtTime(isGlobalMuted ? 0 : 1, now, 0.05);
+
+                // 음소거 해제 시 볼륨이 설정된 트랙만 다시 재생합니다.
+                if (!isGlobalMuted) {
+                    for (const key of soundKeys) {
+                        const sliderValue = Number(document.getElementById(`vol-${key}`).value);
+                        if (sliderValue > 0) {
+                            try { await audioChannels[key].audio.play(); } catch (error) { console.warn(error); }
+                        }
+                    }
+                }
+
+                event.currentTarget.textContent = isGlobalMuted ? '🔇' : '🔊';
+                event.currentTarget.title = isGlobalMuted ? '소리 켜기' : '전체 음소거';
+                setAudioStatus(isGlobalMuted ? '전체 음소거 상태입니다.' : '음소거가 해제되었습니다.');
+            } catch (error) {
+                console.error('전체 오디오 제어 실패:', error);
+                setAudioStatus('오디오를 시작하지 못했습니다. 화면에서 슬라이더를 한 번 조작해 주세요.', true);
+            }
         });
 
         // --- 5. 마우스 및 터치 시점 제어 (모바일 터치 완벽 지원) ---
