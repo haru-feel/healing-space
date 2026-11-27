@@ -99,12 +99,20 @@
         .sound-control {
             margin-bottom: 9px;
         }
-        .sound-control label {
-            font-size: 11px;
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 3px;
-            color: rgba(255, 255, 255, 0.85);
+.sound-control label {
+    font-size: 11px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 28px 10px;
+    align-items: center;
+    column-gap: 2px;
+    margin-bottom: 3px;
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.sound-control label span {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
         }
         .sound-control input[type=range] {
             width: 100%;
